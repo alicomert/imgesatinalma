@@ -1,657 +1,2105 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SATINALMA SİSTEMİ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        't': {'bg': '#0a0a0a', 'green': '#33ff33', 'amber': '#ffb000', 'cyan': '#00ffff', 'red': '#ff3333', 'border': '#333333'}
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        * { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 600; }
-        body { background: #0a0a0a; }
-        input, select, textarea { background: #0a0a0a; border: 2px solid #333; color: #33ff33; padding: 8px 12px; outline: none; }
-        input:focus, select:focus, textarea:focus { border-color: #33ff33; }
-        .btn { background: transparent; border: 3px solid #33ff33; color: #33ff33; padding: 12px 24px; cursor: pointer; font-size: 18px; font-weight: 700; }
-        .btn:hover { background: #33ff33; color: #0a0a0a; }
-        .btn-red { border-color: #ff3333; color: #ff3333; }
-        .btn-red:hover { background: #ff3333; color: #0a0a0a; }
-        .btn-amber { border-color: #ffb000; color: #ffb000; }
-        .btn-amber:hover { background: #ffb000; color: #0a0a0a; }
-        .tab { padding: 16px 32px; font-size: 20px; font-weight: 700; border: 3px solid #333; cursor: pointer; transition: all 0.2s; }
-        .tab.active { background: #33ff33; color: #0a0a0a; border-color: #33ff33; }
-        .tab:not(.active):hover { border-color: #33ff33; }
-        .badge { padding: 6px 14px; font-size: 14px; font-weight: 700; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; }
-        .modal.show { display: flex; align-items: center; justify-content: center; }
-        .user-btn { padding: 20px 40px; font-size: 24px; border: 4px solid #333; cursor: pointer; transition: all 0.2s; }
-        .user-btn:hover { border-color: #33ff33; }
-        .user-btn.selected { background: #33ff33; color: #0a0a0a; border-color: #33ff33; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SATIN ALMA YÖNETİM SİSTEMİ</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c08;
+  --bg2: #0d120d;
+  --bg3: #111811;
+  --green: #22ff44;
+  --green-dim: #15a82c;
+  --green-dark: #0a5c18;
+  --amber: #ffb700;
+  --amber-dim: #a87800;
+  --cyan: #00e5ff;
+  --red: #ff2222;
+  --red-dim: #8c1111;
+  --white: #e8ffe8;
+  --gray: #3a4a3a;
+  --gray2: #242e24;
+  --scanline: rgba(0,0,0,0.18);
+  --font: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* CRT scanline effect */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, var(--scanline) 0px, transparent 1px, transparent 2px);
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ── LOGIN ── */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+}
+
+.login-box {
+  border: 2px solid var(--green);
+  padding: 40px 48px;
+  min-width: 480px;
+  max-width: 95vw;
+  background: var(--bg2);
+  box-shadow: 0 0 40px rgba(34,255,68,0.12), inset 0 0 20px rgba(34,255,68,0.03);
+  animation: flicker 8s infinite;
+}
+
+@keyframes flicker {
+  0%,95%,100% { opacity:1; }
+  96% { opacity:0.92; }
+  97% { opacity:1; }
+  98% { opacity:0.95; }
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--gray);
+  padding-bottom: 20px;
+}
+
+.login-title .sys-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 4px;
+  display: block;
+}
+
+.login-title .sys-sub {
+  font-size: 11px;
+  color: var(--amber);
+  letter-spacing: 2px;
+  display: block;
+  margin-top: 6px;
+}
+
+.login-prompt {
+  text-align: center;
+  color: var(--amber);
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.user-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.user-btn {
+  background: var(--bg3);
+  border: 1px solid var(--gray);
+  color: var(--green);
+  padding: 16px 8px;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: all 0.1s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.user-btn:hover, .user-btn:focus {
+  background: var(--green-dark);
+  border-color: var(--green);
+  color: var(--green);
+  outline: none;
+  box-shadow: 0 0 8px rgba(34,255,68,0.3);
+}
+
+.user-btn .u-rol {
+  font-size: 10px;
+  color: var(--amber);
+  font-weight: 400;
+}
+
+/* ── MAIN APP ── */
+#main-app { display: none; min-height: 100vh; }
+
+/* ── STATUS BAR ── */
+.status-bar {
+  background: var(--green);
+  color: var(--bg);
+  padding: 3px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.status-left { display: flex; gap: 16px; align-items: center; }
+.status-right { display: flex; gap: 16px; align-items: center; }
+.status-user { background: var(--amber); color: var(--bg); padding: 1px 8px; }
+.status-gozlemci { background: var(--cyan); color: var(--bg); padding: 1px 8px; }
+
+/* ── F-KEY BAR ── */
+.fkey-bar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--gray);
+  padding: 4px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fkey {
+  background: var(--gray2);
+  border: 1px solid var(--gray);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  transition: all 0.08s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fkey:hover, .fkey:focus {
+  background: var(--green-dark);
+  border-color: var(--green);
+  outline: none;
+}
+
+.fkey.active {
+  background: var(--green);
+  color: var(--bg);
+  border-color: var(--green);
+}
+
+.fkey .fk-num {
+  color: var(--amber);
+  font-size: 10px;
+}
+
+.fkey.active .fk-num { color: var(--bg); }
+
+/* ── SCREEN AREA ── */
+.screen {
+  padding: 10px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── PANEL HEADER ── */
+.panel-hdr {
+  background: var(--green);
+  color: var(--bg);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.panel-hdr .ph-id {
+  color: var(--bg);
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* ── TABLE ── */
+.t-wrap {
+  border: 1px solid var(--gray);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.t-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.t-wrap thead tr {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--green-dark);
+}
+
+.t-wrap th {
+  padding: 5px 8px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  border-right: 1px solid var(--gray2);
+}
+
+.t-wrap td {
+  padding: 5px 8px;
+  font-size: 12px;
+  border-right: 1px solid var(--gray2);
+  border-bottom: 1px solid var(--bg3);
+  vertical-align: middle;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.t-wrap tr:hover td { background: var(--bg2); }
+
+.t-wrap .row-sel { cursor: pointer; }
+.t-wrap .row-sel.selected td { background: var(--green-dark) !important; color: var(--white); }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.b-devam { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-dim); }
+.b-tamam, .b-aktif, .b-kabul, .b-odendi { background: var(--green-dark); color: var(--green); border: 1px solid var(--green-dark); }
+.b-iptal, .b-red, .b-bekliyor { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-dim); }
+.b-beklemede { background: var(--gray2); color: var(--white); border: 1px solid var(--gray); }
+.b-arastirma { background: #0a2a4a; color: var(--cyan); border: 1px solid #0d3a6a; }
+.b-secim { background: #1a2a0a; color: #88ff44; border: 1px solid #2a3a1a; }
+.b-cari { background: #2a1a0a; color: var(--amber); border: 1px solid #3a2a1a; }
+.b-kontrol { background: #0a1a2a; color: #44aaff; border: 1px solid #1a2a3a; }
+.b-fatura { background: #2a0a2a; color: #ff88ff; border: 1px solid #3a1a3a; }
+
+/* ── BUTTONS ── */
+.btn {
+  background: var(--bg2);
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: all 0.08s;
+  white-space: nowrap;
+}
+.btn:hover, .btn:focus {
+  background: var(--green-dark);
+  border-color: var(--green);
+  outline: none;
+}
+.btn-sm { padding: 3px 8px; font-size: 11px; }
+.btn-red { border-color: var(--red-dim); color: var(--red); }
+.btn-red:hover { background: var(--red-dim); border-color: var(--red); }
+.btn-amber { border-color: var(--amber-dim); color: var(--amber); }
+.btn-amber:hover { background: var(--amber-dim); border-color: var(--amber); }
+.btn-cyan { border-color: #006a75; color: var(--cyan); }
+.btn-cyan:hover { background: #004a50; border-color: var(--cyan); }
+.btn-fill { background: var(--green-dark); border-color: var(--green); }
+.btn-fill:hover { background: var(--green); color: var(--bg); }
+
+/* ── FORM ── */
+.form-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.form-grid.g2 { grid-template-columns: 1fr 1fr; }
+.form-grid.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-grid.g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+
+.field label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+
+.field input, .field select, .field textarea {
+  background: var(--bg3);
+  border: 1px solid var(--gray);
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 8px;
+  outline: none;
+  transition: border-color 0.1s;
+  width: 100%;
+  -webkit-appearance: none;
+}
+
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--green);
+  background: var(--bg2);
+}
+
+.field select option { background: var(--bg3); color: var(--green); }
+
+.field textarea { resize: vertical; min-height: 60px; }
+
+/* ── MODAL ── */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+.modal.show { display: flex; }
+
+.modal-box {
+  background: var(--bg);
+  border: 2px solid var(--green-dim);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 30px rgba(34,255,68,0.2);
+}
+
+.modal-hdr {
+  background: var(--green);
+  color: var(--bg);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--bg);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.modal-body { padding: 16px; }
+.modal-footer { padding: 12px 16px; border-top: 1px solid var(--gray); display: flex; justify-content: space-between; gap: 8px; }
+
+/* ── ZAMAN ÇİZELGESİ ── */
+.timeline {
+  border: 1px solid var(--gray);
+  background: var(--bg2);
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bg3);
+  align-items: start;
+  font-size: 12px;
+}
+
+.timeline-item:last-child { border-bottom: none; }
+
+.tl-time { color: var(--amber-dim); font-size: 10px; white-space: nowrap; }
+.tl-content { }
+.tl-aksiyon { font-weight: 700; color: var(--white); font-size: 11px; }
+.tl-aciklama { color: var(--green-dim); font-size: 11px; margin-top: 2px; }
+.tl-user { font-size: 10px; color: var(--gray); text-align: right; white-space: nowrap; }
+
+.tl-tip-BASLANGIÇ { border-left: 3px solid var(--green); }
+.tl-tip-SAFHA { border-left: 3px solid var(--amber); }
+.tl-tip-TEKLİF { border-left: 3px solid var(--cyan); }
+.tl-tip-SECIM { border-left: 3px solid #88ff44; }
+.tl-tip-AS400 { border-left: 3px solid var(--amber); }
+.tl-tip-FATURA { border-left: 3px solid #ff88ff; }
+.tl-tip-ODEME { border-left: 3px solid var(--green); }
+.tl-tip-GOZLEM { border-left: 3px solid var(--cyan); }
+.tl-tip-NOT { border-left: 3px solid var(--gray); }
+
+/* ── SAFHA PROGRESS ── */
+.safha-bar {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--gray);
+  overflow: hidden;
+}
+
+.safha-step {
+  flex: 1;
+  padding: 6px 4px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-right: 1px solid var(--bg);
+  cursor: pointer;
+  transition: all 0.1s;
+  line-height: 1.3;
+}
+
+.safha-step:last-child { border-right: none; }
+
+.safha-step.done { background: var(--green-dark); color: var(--green); }
+.safha-step.active { background: var(--amber); color: var(--bg); }
+.safha-step.pending { background: var(--bg2); color: var(--gray); }
+.safha-step:hover { opacity: 0.85; }
+
+/* ── STAT BOXES ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stat-box {
+  background: var(--bg2);
+  border: 1px solid var(--gray);
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.stat-val {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+}
+
+.stat-lbl {
+  font-size: 9px;
+  color: var(--amber);
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* ── SEARCH RESULT CARDS ── */
+.sr-card {
+  border: 1px solid var(--gray);
+  padding: 10px;
+  margin-bottom: 8px;
+  background: var(--bg2);
+}
+
+.sr-title { color: var(--cyan); font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.sr-contact { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; font-size: 11px; }
+.sr-tel { color: var(--green); }
+.sr-mail { color: var(--amber); }
+.sr-desc { color: var(--gray); font-size: 11px; margin-bottom: 8px; line-height: 1.5; }
+.sr-url { color: var(--green-dim); font-size: 10px; word-break: break-all; margin-bottom: 6px; }
+
+/* ── DETAIL PANEL ── */
+.detail-panel {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 10px;
+}
+
+/* ── ONAY SECTION ── */
+.onay-item {
+  border-left: 3px solid var(--cyan);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: var(--bg2);
+  font-size: 12px;
+}
+
+.onay-hdr { display: flex; justify-content: space-between; color: var(--cyan); font-size: 11px; font-weight: 700; }
+.onay-yorum { color: var(--white); margin-top: 4px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .form-grid.g2, .form-grid.g3, .form-grid.g4 { grid-template-columns: 1fr; }
+  .detail-panel { grid-template-columns: 1fr; }
+  .safha-step { font-size: 8px; padding: 5px 2px; }
+  .timeline-item { grid-template-columns: 100px 1fr; }
+  .tl-user { display: none; }
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .status-bar { font-size: 10px; }
+  .fkey { font-size: 10px; padding: 3px 6px; }
+  .login-box { padding: 24px 16px; min-width: auto; }
+  .user-grid { grid-template-columns: 1fr; }
+}
+
+/* ── MISC ── */
+.sep { border: none; border-top: 1px solid var(--gray); margin: 10px 0; }
+.lbl { font-size: 10px; color: var(--amber); letter-spacing: 1px; font-weight: 700; }
+.val { font-size: 13px; color: var(--white); }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.info-item { background: var(--bg2); border: 1px solid var(--bg3); padding: 8px; }
+
+.alert-box {
+  border: 1px solid var(--amber);
+  background: #1a1200;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--amber);
+  margin-bottom: 10px;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--amber);
+  letter-spacing: 2px;
+  font-size: 12px;
+}
+
+.cursor::after {
+  content: '█';
+  animation: blink 1s infinite;
+  color: var(--green);
+}
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+.hidden { display: none !important; }
+.text-green { color: var(--green); }
+.text-amber { color: var(--amber); }
+.text-cyan { color: var(--cyan); }
+.text-red { color: var(--red); }
+.text-gray { color: var(--gray); }
+.text-white { color: var(--white); }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.fw7 { font-weight: 700; }
+.fs11 { font-size: 11px; }
+.fs10 { font-size: 10px; }
+.mt8 { margin-top: 8px; }
+.mt12 { margin-top: 12px; }
+.mb8 { margin-bottom: 8px; }
+.flex { display: flex; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-end { display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
+.gap8 { gap: 8px; }
+.gap4 { gap: 4px; }
+.flex-wrap { flex-wrap: wrap; }
+</style>
 </head>
-<body class="min-h-screen text-t-green">
+<body>
 
-<!-- LOGIN SCREEN -->
-<div id="login-screen" class="min-h-screen flex items-center justify-center">
-    <div class="text-center">
-        <div class="text-4xl font-bold mb-8 text-t-green">═══ SATINALMA SİSTEMİ ═══</div>
-        <div class="text-xl mb-8 text-t-amber">KULLANICI SEÇİNİZ</div>
-        <div class="flex gap-8 justify-center">
-            <button onclick="login('NVARNALI')" class="user-btn text-t-green">👤 NVARNALI</button>
-            <button onclick="login('ACOMERT')" class="user-btn text-t-green">👤 ACOMERT</button>
-        </div>
+<!-- ═══ LOGIN ═══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-title">
+      <span class="sys-name">SATIN ALMA YÖNETİM SİSTEMİ</span>
+      <span class="sys-sub">v2.0 / TERMINAL MODE</span>
     </div>
+    <div class="login-prompt">▶ KULLANICI SEÇİNİZ ◀</div>
+    <div class="user-grid">
+      <button class="user-btn" onclick="login('NVARNALI')">
+        <span style="font-size:20px">▣</span>
+        <span>NVARNALI</span>
+        <span class="u-rol">KULLANICI</span>
+      </button>
+      <button class="user-btn" onclick="login('ACOMERT')">
+        <span style="font-size:20px">▣</span>
+        <span>ACOMERT</span>
+        <span class="u-rol">KULLANICI</span>
+      </button>
+      <button class="user-btn" onclick="login('CTURHAN')" style="border-color: var(--cyan); color: var(--cyan);">
+        <span style="font-size:20px">◈</span>
+        <span>CTURHAN</span>
+        <span class="u-rol" style="color:var(--cyan)">GÖZLEMCİ</span>
+      </button>
+    </div>
+  </div>
+  <div style="margin-top:16px; font-size:10px; color:var(--gray); letter-spacing:2px;">
+    SİSTEM HAZIR <span class="cursor"></span>
+  </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="main-app" class="hidden">
-    <!-- Header -->
-    <header class="border-b-4 border-t-border bg-t-bg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-6">
-                <div class="text-3xl font-bold text-t-green">SATINALMA</div>
-            </div>
-            <div class="flex items-center gap-8 text-lg">
-                <div><span class="text-t-cyan">📅</span> <span id="current-date"></span></div>
-                <div><span class="text-t-cyan">⏰</span> <span id="current-time"></span></div>
-                <div><span class="text-t-cyan">👤</span> <span id="current-user" class="text-t-amber font-bold"></span></div>
-                <button onclick="logout()" class="btn btn-red text-sm py-2 px-4">ÇIKIŞ</button>
-            </div>
+<!-- ═══ MAIN APP ═══ -->
+<div id="main-app">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-left">
+      <span style="letter-spacing:2px;">SATIN ALMA</span>
+      <span id="sb-tab" style="color:var(--bg); opacity:0.7;"></span>
+    </div>
+    <div class="status-right">
+      <span id="sb-date"></span>
+      <span id="sb-time"></span>
+      <span id="sb-user" class="status-user"></span>
+      <button onclick="logout()" class="btn btn-sm btn-red" style="padding:2px 8px; font-size:10px;">ÇIKIŞ</button>
+    </div>
+  </div>
+
+  <!-- F-Key Navigation Bar -->
+  <div class="fkey-bar" id="fkey-bar">
+    <button class="fkey active" id="fk-isler" onclick="showTab('isler')" title="F1">
+      <span class="fk-num">F1</span>İŞLER
+    </button>
+    <button class="fkey" id="fk-firmalar" onclick="showTab('firmalar')" title="F2">
+      <span class="fk-num">F2</span>FİRMALAR
+    </button>
+    <button class="fkey" id="fk-arastirma" onclick="showTab('arastirma')" title="F3">
+      <span class="fk-num">F3</span>ARAŞTIRMA
+    </button>
+    <button class="fkey" id="fk-teklifler" onclick="showTab('teklifler')" title="F4">
+      <span class="fk-num">F4</span>TEKLİFLER
+    </button>
+    <button class="fkey" id="fk-faturalar" onclick="showTab('faturalar')" title="F5">
+      <span class="fk-num">F5</span>FATURALAR
+    </button>
+    <div style="flex:1"></div>
+    <button class="fkey btn-amber" onclick="openModal('is')" title="F9">
+      <span class="fk-num">F9</span>+ YENİ İŞ
+    </button>
+    <button class="fkey" onclick="initSystem()" title="F12" style="color:var(--gray); border-color:var(--gray);">
+      <span class="fk-num">F12</span>INIT
+    </button>
+  </div>
+
+  <!-- Screen -->
+  <div class="screen">
+
+    <!-- ═══ İŞLER ═══ -->
+    <div id="tab-isler" class="tab-content">
+      <div class="panel-hdr">
+        <span>═ İŞ TAKİP LİSTESİ</span>
+        <span class="ph-id">IS-001</span>
+      </div>
+      <div class="stats-row mt8" id="is-stats">
+        <div class="stat-box"><div class="stat-val" id="is-toplam">0</div><div class="stat-lbl">TOPLAM</div></div>
+        <div class="stat-box"><div class="stat-val text-amber" id="is-devam">0</div><div class="stat-lbl">DEVAM</div></div>
+        <div class="stat-box"><div class="stat-val text-green" id="is-bitti">0</div><div class="stat-lbl">BİTTİ</div></div>
+        <div class="stat-box"><div class="stat-val text-cyan" id="is-arastirma">0</div><div class="stat-lbl">ARAŞTIRMA</div></div>
+        <div class="stat-box"><div class="stat-val" id="is-fatura">0</div><div class="stat-lbl">FATURA</div></div>
+      </div>
+      <div class="flex-between mb8 flex-wrap gap8">
+        <div style="font-size:11px; color:var(--gray)">▶ BİR SATIRA TIKLAYARAK DETAY GÖSTER</div>
+        <button class="btn btn-sm" onclick="openModal('is')">+ YENİ İŞ [F9]</button>
+      </div>
+      <div class="t-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>HİZMET</th>
+              <th>ATANAN</th>
+              <th>FİRMA</th>
+              <th>SAFHA</th>
+              <th>DURUM</th>
+              <th>BAŞLANGIÇ</th>
+              <th>AS400</th>
+              <th>İŞLEM</th>
+            </tr>
+          </thead>
+          <tbody id="isler-tbody">
+            <tr><td colspan="8" class="loading">YÜKLENİYOR<span class="cursor"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ İŞ DETAY ═══ -->
+    <div id="tab-is-detay" class="tab-content hidden">
+      <div class="panel-hdr">
+        <span>═ İŞ DETAYI</span>
+        <button class="btn btn-sm" onclick="showTab('isler')" style="background:transparent; border-color:var(--bg); color:var(--bg);">← GERİ</button>
+      </div>
+      <div id="is-detay-content" class="mt8"></div>
+    </div>
+
+    <!-- ═══ FİRMALAR ═══ -->
+    <div id="tab-firmalar" class="tab-content hidden">
+      <div class="panel-hdr">
+        <span>═ FİRMA VERİTABANI</span>
+        <span class="ph-id">FRM-002</span>
+      </div>
+      <div class="flex-between mt8 mb8 flex-wrap gap8">
+        <div class="flex gap8 flex-wrap">
+          <input type="text" id="firma-filter" placeholder="FİRMA ARA..." class="field" style="display:inline-block; width:200px; padding:5px 8px; font-size:11px;" oninput="filterFirmalar()">
+          <span style="font-size:11px; color:var(--amber);">TOPLAM: <span id="firma-toplam">0</span></span>
         </div>
-    </header>
-
-    <!-- Tabs -->
-    <nav class="max-w-7xl mx-auto px-6 py-4 flex gap-4 flex-wrap">
-        <button onclick="showTab('isler')" id="tab-isler" class="tab active">🔧 İŞLER</button>
-        <button onclick="showTab('firmalar')" id="tab-firmalar" class="tab">🏢 FİRMALAR</button>
-        <button onclick="showTab('arastirma')" id="tab-arastirma" class="tab">🔍 ARAŞTIRMA</button>
-        <button onclick="showTab('teklifler')" id="tab-teklifler" class="tab">💵 TEKLİFLER</button>
-        <button onclick="showTab('faturalar')" id="tab-faturalar" class="tab">📄 FATURALAR</button>
-    </nav>
-
-    <!-- Content -->
-    <main class="max-w-7xl mx-auto px-6 py-4">
-
-        <!-- İŞLER TAB -->
-        <div id="content-isler" class="tab-content">
-            <div class="border-4 border-t-border mb-6">
-                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
-                    ═══ İŞ TAKİBİ ═══
-                </div>
-            </div>
-
-            <div class="flex justify-between items-center mb-6">
-                <div class="text-lg flex gap-6">
-                    <span class="text-t-amber">TOPLAM: <span id="is-total">0</span></span>
-                    <span>DEVAM: <span id="is-devam">0</span></span>
-                    <span class="text-t-green">TAMAM: <span id="is-tamam">0</span></span>
-                </div>
-                <button onclick="openModal('is')" class="btn">+ YENİ İŞ</button>
-            </div>
-
-            <div class="border-4 border-t-border overflow-x-auto">
-                <table class="w-full text-base">
-                    <thead>
-                        <tr class="bg-t-border text-t-bg">
-                            <th class="p-3 border-r border-t-bg text-left">HİZMET</th>
-                            <th class="p-3 border-r border-t-bg text-left">FİRMA</th>
-                            <th class="p-3 border-r border-t-bg text-center">BAŞLANGIÇ</th>
-                            <th class="p-3 border-r border-t-bg text-center">DURUM</th>
-                            <th class="p-3 border-r border-t-bg text-center">KANIT</th>
-                            <th class="p-3 text-center">İŞLEM</th>
-                        </tr>
-                    </thead>
-                    <tbody id="isler-list"></tbody>
-                </table>
-            </div>
+        <div class="flex gap8 flex-wrap">
+          <button class="btn btn-sm btn-red" onclick="deleteSelectedFirmalar()">SEÇILI SİL</button>
+          <button class="btn btn-sm" onclick="openModal('firma')">+ FİRMA EKLE</button>
         </div>
+      </div>
+      <div class="t-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox" id="firma-all-chk" onchange="toggleAllFirmalar(this)" title="Tümünü seç"></th>
+              <th>AD</th>
+              <th>TELEFON</th>
+              <th>EPOSTA</th>
+              <th>KONUM</th>
+              <th>HİZMET</th>
+              <th>DURUM</th>
+              <th>İŞLEM</th>
+            </tr>
+          </thead>
+          <tbody id="firmalar-tbody">
+            <tr><td colspan="8" class="loading">YÜKLENİYOR<span class="cursor"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-        <!-- FİRMALAR TAB -->
-        <div id="content-firmalar" class="tab-content hidden">
-            <div class="border-4 border-t-border mb-6">
-                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
-                    ═══ FİRMA VERİTABANI ═══
-                </div>
-            </div>
-
-            <div class="flex justify-between items-center mb-6">
-                <div class="text-lg">
-                    <span class="text-t-amber">TOPLAM: <span id="firma-total">0</span></span>
-                </div>
-                <div class="flex gap-4">
-                    <button onclick="deleteSelectedFirmalar()" class="btn btn-red">🗑 TOPLU SİL</button>
-                    <button onclick="openModal('firma')" class="btn">+ YENİ FİRMA</button>
-                </div>
-            </div>
-
-            <div class="border-4 border-t-border overflow-x-auto">
-                <table class="w-full text-base">
-                    <thead>
-                        <tr class="bg-t-border text-t-bg">
-                            <th class="p-3 border-r border-t-bg text-center w-12">✓</th>
-                            <th class="p-3 border-r border-t-bg text-left">AD</th>
-                            <th class="p-3 border-r border-t-bg text-left">TELEFON</th>
-                            <th class="p-3 border-r border-t-bg text-left">EPOSTA</th>
-                            <th class="p-3 border-r border-t-bg text-left">KONUM</th>
-                            <th class="p-3 border-r border-t-bg text-left">HİZMET</th>
-                            <th class="p-3 text-center">İŞLEM</th>
-                        </tr>
-                    </thead>
-                    <tbody id="firmalar-list"></tbody>
-                </table>
-            </div>
+    <!-- ═══ ARAŞTIRMA ═══ -->
+    <div id="tab-arastirma" class="tab-content hidden">
+      <div class="panel-hdr">
+        <span>═ FİRMA ARAŞTIRMA MODÜLÜ</span>
+        <span class="ph-id">ARŞ-003</span>
+      </div>
+      <div class="mt8 mb8" style="border:1px solid var(--gray); padding:12px; background:var(--bg2);">
+        <div class="form-grid g4">
+          <div class="field" style="grid-column:span 2;">
+            <label>ARAMA TERİMİ</label>
+            <input type="text" id="srch-query" placeholder="klima bakım servisi..." onkeydown="if(event.key==='Enter') startSearch()">
+          </div>
+          <div class="field">
+            <label>KONUM</label>
+            <input type="text" id="srch-konum" placeholder="Bursa..." onkeydown="if(event.key==='Enter') startSearch()">
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <button class="btn btn-fill" onclick="startSearch()" style="height:100%;">ARA [ENTER]</button>
+          </div>
         </div>
-
-        <!-- ARAŞTIRMA TAB -->
-        <div id="content-arastirma" class="tab-content hidden">
-            <div class="border-4 border-t-border mb-6">
-                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
-                    ═══ FİRMA ARAŞTIRMA ═══
-                </div>
-            </div>
-
-            <!-- Search Form -->
-            <div class="border-4 border-t-border p-6 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="md:col-span-2">
-                        <label class="text-t-amber block mb-2 text-lg">ARAMA:</label>
-                        <input type="text" id="search-query" placeholder="Ankara klima servisi..." class="w-full text-lg p-4">
-                    </div>
-                    <div>
-                        <label class="text-t-amber block mb-2 text-lg">KONUM:</label>
-                        <input type="text" id="search-konum" placeholder="Ankara..." class="w-full text-lg p-4">
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="startSearch()" class="btn w-full text-lg py-4">══ ARA ══</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Status -->
-            <div id="search-status" class="hidden border-4 border-t-amber p-4 mb-6 text-center text-t-amber text-xl">
-                ⏳ ARANIYOR...
-            </div>
-
-            <!-- Results -->
-            <div id="search-results" class="hidden border-4 border-t-border mb-6">
-                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
-                    ═══ SONUÇLAR (<span id="result-count">0</span>) ═══
-                </div>
-                <div class="p-4" id="search-results-list"></div>
-            </div>
-
-            <!-- History -->
-            <div class="border-4 border-t-border">
-                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
-                    ═══ ARAMA GEÇMİŞİ ═══
-                </div>
-                <div class="p-4" id="arastirma-history"></div>
-            </div>
+      </div>
+      <div id="srch-status" class="hidden alert-box">⏳ ARANIY­OR...</div>
+      <div id="srch-results-wrap" class="hidden">
+        <div class="panel-hdr mb8">
+          <span>═ SONUÇLAR (<span id="srch-count">0</span>)</span>
         </div>
+        <div id="srch-results-list"></div>
+      </div>
+    </div>
 
-        <!-- TEKLİFLER TAB -->
-        <div id="content-teklifler" class="tab-content hidden">
-            <div class="border-4 border-t-border mb-6">
-                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
-                    ═══ TEKLİFLER ═══
-                </div>
-            </div>
+    <!-- ═══ TEKLİFLER ═══ -->
+    <div id="tab-teklifler" class="tab-content hidden">
+      <div class="panel-hdr">
+        <span>═ TEKLİF YÖNETİMİ</span>
+        <span class="ph-id">TKL-004</span>
+      </div>
+      <div class="flex-between mt8 mb8 flex-wrap gap8">
+        <span style="font-size:11px; color:var(--amber);">TOPLAM: <span id="teklif-toplam">0</span></span>
+        <button class="btn btn-sm" onclick="openModal('teklif')">+ TEKLİF EKLE</button>
+      </div>
+      <div class="t-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>İŞ</th>
+              <th>FİRMA</th>
+              <th>HİZMET</th>
+              <th class="text-right">KDVSİZ</th>
+              <th class="text-right">KDV</th>
+              <th class="text-right">TOPLAM</th>
+              <th>KAYNAK</th>
+              <th>VADE</th>
+              <th>DURUM</th>
+              <th>İŞLEM</th>
+            </tr>
+          </thead>
+          <tbody id="teklifler-tbody">
+            <tr><td colspan="10" class="loading">YÜKLENİYOR<span class="cursor"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-            <div class="flex justify-between items-center mb-6">
-                <div class="text-lg"><span class="text-t-amber">TOPLAM: <span id="teklif-total">0</span></span></div>
-                <button onclick="openModal('teklif')" class="btn">+ YENİ TEKLİF</button>
-            </div>
-
-            <div class="border-4 border-t-border overflow-x-auto">
-                <table class="w-full text-base">
-                    <thead>
-                        <tr class="bg-t-border text-t-bg">
-                            <th class="p-3 border-r border-t-bg text-left">FİRMA</th>
-                            <th class="p-3 border-r border-t-bg text-left">HİZMET</th>
-                            <th class="p-3 border-r border-t-bg text-right">TUTAR</th>
-                            <th class="p-3 border-r border-t-bg text-center">KAYNAK</th>
-                            <th class="p-3 border-r border-t-bg text-center">DURUM</th>
-                            <th class="p-3 text-center">İŞLEM</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teklifler-list"></tbody>
-                </table>
-            </div>
+    <!-- ═══ FATURALAR ═══ -->
+    <div id="tab-faturalar" class="tab-content hidden">
+      <div class="panel-hdr">
+        <span>═ FATURA & ÖDEME TAKİBİ</span>
+        <span class="ph-id">FTR-005</span>
+      </div>
+      <div class="flex-between mt8 mb8 flex-wrap gap8">
+        <div class="flex gap8">
+          <span style="font-size:11px; color:var(--amber);">TOPLAM: <span id="fatura-toplam">0</span></span>
+          <span style="font-size:11px; color:var(--red);">VADESİ GEÇEN: <span id="fatura-gecen">0</span></span>
         </div>
+        <button class="btn btn-sm" onclick="openModal('fatura')">+ FATURA EKLE</button>
+      </div>
+      <div class="t-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>İŞ</th>
+              <th>FİRMA</th>
+              <th>FATURA NO</th>
+              <th class="text-right">KDVSİZ</th>
+              <th class="text-right">TOPLAM</th>
+              <th>FATURA TARİHİ</th>
+              <th>VADE TARİHİ</th>
+              <th>DURUM</th>
+              <th>İŞLEM</th>
+            </tr>
+          </thead>
+          <tbody id="faturalar-tbody">
+            <tr><td colspan="9" class="loading">YÜKLENİYOR<span class="cursor"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-        <!-- FATURALAR TAB -->
-        <div id="content-faturalar" class="tab-content hidden">
-            <div class="border-4 border-t-border mb-6">
-                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
-                    ═══ FATURALAR ═══
-                </div>
-            </div>
+  </div><!-- /screen -->
+</div><!-- /main-app -->
 
-            <div class="flex justify-between items-center mb-6">
-                <div class="text-lg"><span class="text-t-amber">TOPLAM: <span id="fatura-total">0</span></span></div>
-                <button onclick="openModal('fatura')" class="btn">+ YENİ FATURA</button>
-            </div>
+<!-- ═══ MODALS ═══ -->
 
-            <div class="border-4 border-t-border overflow-x-auto">
-                <table class="w-full text-base">
-                    <thead>
-                        <tr class="bg-t-border text-t-bg">
-                            <th class="p-3 border-r border-t-bg text-left">FİRMA</th>
-                            <th class="p-3 border-r border-t-bg text-left">FATURA NO</th>
-                            <th class="p-3 border-r border-t-bg text-right">TUTAR</th>
-                            <th class="p-3 border-r border-t-bg text-center">VADE</th>
-                            <th class="p-3 border-r border-t-bg text-center">DURUM</th>
-                            <th class="p-3 text-center">İŞLEM</th>
-                        </tr>
-                    </thead>
-                    <tbody id="faturalar-list"></tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
-</div>
-
-<!-- MODALS -->
+<!-- YENİ İŞ -->
 <div id="modal-is" class="modal">
-    <div class="border-4 border-t-border bg-t-bg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl flex justify-between">
-            <span>═══ YENİ İŞ ═══</span>
-            <button onclick="closeModal('is')" class="hover:text-t-red">✕</button>
-        </div>
-        <div class="p-6 space-y-6">
-            <div><label class="text-t-amber block mb-2">HİZMET:</label><input type="text" id="is-hizmet" placeholder="Klima bakımı..." class="w-full"></div>
-            <div><label class="text-t-amber block mb-2">FİRMA:</label><input type="text" id="is-firma" placeholder="Firma adı..." class="w-full"></div>
-            <div class="grid grid-cols-2 gap-6">
-                <div><label class="text-t-amber block mb-2">BAŞLANGIÇ:</label><input type="text" id="is-baslangic" class="w-full" readonly></div>
-                <div><label class="text-t-amber block mb-2">DURUM:</label>
-                    <select id="is-durum" class="w-full">
-                        <option value="DEVAM">DEVAM EDİYOR</option>
-                        <option value="TAMAM">TAMAMLANDI</option>
-                        <option value="IPTAL">İPTAL</option>
-                    </select>
-                </div>
-            </div>
-            <div><label class="text-t-amber block mb-2">NOTLAR:</label><textarea id="is-notlar" rows="3" class="w-full resize-none"></textarea></div>
-            <div class="flex justify-between">
-                <button onclick="closeModal('is')" class="btn btn-red">İPTAL</button>
-                <button onclick="saveIs()" class="btn">KAYDET</button>
-            </div>
-        </div>
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span>═ YENİ İŞ KAYDΙ</span>
+      <button class="modal-close" onclick="closeModal('is')">✕</button>
     </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>HİZMET / KONU *</label>
+          <input type="text" id="is-hizmet" placeholder="Klima bakım hizmeti...">
+        </div>
+        <div class="field">
+          <label>AÇIKLAMA</label>
+          <input type="text" id="is-aciklama" placeholder="Detay...">
+        </div>
+      </div>
+      <div class="form-grid g2 mt8">
+        <div class="field">
+          <label>ATANAN KİŞİLER</label>
+          <input type="text" id="is-atanan" placeholder="NVARNALI, ACOMERT">
+        </div>
+        <div class="field">
+          <label>İLİŞKİLİ FİRMA</label>
+          <input type="text" id="is-firma-ad" placeholder="Firma adı (opsiyonel)">
+        </div>
+      </div>
+      <div class="form-grid g2 mt8">
+        <div class="field">
+          <label>BAŞLANGIÇ TARİHİ</label>
+          <input type="text" id="is-baslangic" placeholder="01.01.2025">
+        </div>
+        <div class="field">
+          <label>HEDEF BİTİŞ TARİHİ</label>
+          <input type="text" id="is-hedef-bitis" placeholder="31.01.2025">
+        </div>
+      </div>
+      <div class="field mt8">
+        <label>NOTLAR</label>
+        <textarea id="is-notlar" rows="2" placeholder="Ek bilgi..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('is')">İPTAL [ESC]</button>
+      <button class="btn btn-fill" onclick="saveIs()">KAYDET [ENTER]</button>
+    </div>
+  </div>
 </div>
 
+<!-- YENİ FİRMA -->
 <div id="modal-firma" class="modal">
-    <div class="border-4 border-t-border bg-t-bg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl flex justify-between">
-            <span>═══ YENİ FİRMA ═══</span>
-            <button onclick="closeModal('firma')" class="hover:text-t-red">✕</button>
-        </div>
-        <div class="p-6 space-y-6">
-            <div><label class="text-t-amber block mb-2">FİRMA ADI:</label><input type="text" id="firma-ad" placeholder="ABC Klima..." class="w-full"></div>
-            <div class="grid grid-cols-2 gap-6">
-                <div><label class="text-t-amber block mb-2">TELEFON:</label><input type="text" id="firma-telefon" placeholder="+90 312..." class="w-full"></div>
-                <div><label class="text-t-amber block mb-2">EPOSTA:</label><input type="email" id="firma-eposta" placeholder="info@..." class="w-full"></div>
-            </div>
-            <div class="grid grid-cols-2 gap-6">
-                <div><label class="text-t-amber block mb-2">KONUM:</label><input type="text" id="firma-konum" placeholder="Ankara..." class="w-full"></div>
-                <div><label class="text-t-amber block mb-2">HİZMET:</label><input type="text" id="firma-hizmet" placeholder="Klima bakım..." class="w-full"></div>
-            </div>
-            <div><label class="text-t-amber block mb-2">NOTLAR:</label><textarea id="firma-notlar" rows="3" class="w-full resize-none"></textarea></div>
-            <div class="flex justify-between">
-                <button onclick="closeModal('firma')" class="btn btn-red">İPTAL</button>
-                <button onclick="saveFirma()" class="btn">KAYDET</button>
-            </div>
-        </div>
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span>═ FİRMA KAYDΙ</span>
+      <button class="modal-close" onclick="closeModal('firma')">✕</button>
     </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>FİRMA ADI *</label>
+        <input type="text" id="firma-ad" placeholder="ABC Teknik Ltd.">
+      </div>
+      <div class="form-grid g2 mt8">
+        <div class="field">
+          <label>TELEFON</label>
+          <input type="text" id="firma-telefon" placeholder="+90 224 xxx xx xx">
+        </div>
+        <div class="field">
+          <label>E-POSTA</label>
+          <input type="email" id="firma-eposta" placeholder="info@firma.com">
+        </div>
+      </div>
+      <div class="form-grid g2 mt8">
+        <div class="field">
+          <label>KONUM / ŞEHİR</label>
+          <input type="text" id="firma-konum" placeholder="Bursa">
+        </div>
+        <div class="field">
+          <label>HİZMET ALANI</label>
+          <input type="text" id="firma-hizmet" placeholder="Klima, bakım...">
+        </div>
+      </div>
+      <div class="form-grid g2 mt8">
+        <div class="field">
+          <label>ADRES</label>
+          <input type="text" id="firma-adres" placeholder="Mahalle, Cadde...">
+        </div>
+        <div class="field">
+          <label>WEB SİTESİ</label>
+          <input type="text" id="firma-web" placeholder="www.firma.com">
+        </div>
+      </div>
+      <div class="field mt8">
+        <label>NOTLAR</label>
+        <textarea id="firma-notlar" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('firma')">İPTAL</button>
+      <button class="btn btn-fill" onclick="saveFirma()">KAYDET</button>
+    </div>
+  </div>
 </div>
 
+<!-- YENİ TEKLİF -->
 <div id="modal-teklif" class="modal">
-    <div class="border-4 border-t-border bg-t-bg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl flex justify-between">
-            <span>═══ YENİ TEKLİF ═══</span>
-            <button onclick="closeModal('teklif')" class="hover:text-t-red">✕</button>
-        </div>
-        <div class="p-6 space-y-6">
-            <div><label class="text-t-amber block mb-2">FİRMA:</label><input type="text" id="teklif-firma" placeholder="Firma..." class="w-full"></div>
-            <div><label class="text-t-amber block mb-2">HİZMET:</label><input type="text" id="teklif-hizmet" placeholder="Hizmet..." class="w-full"></div>
-            <div class="grid grid-cols-3 gap-6">
-                <div><label class="text-t-amber block mb-2">TUTAR:</label><input type="number" id="teklif-tutar" placeholder="0" class="w-full"></div>
-                <div><label class="text-t-amber block mb-2">PARA:</label><select id="teklif-para" class="w-full"><option value="TRY">₺ TRY</option><option value="USD">$ USD</option></select></div>
-                <div><label class="text-t-amber block mb-2">KAYNAK:</label><select id="teklif-kaynak" class="w-full"><option value="">SEÇ</option><option value="WhatsApp">WhatsApp</option><option value="Eposta">E-posta</option><option value="Telefon">Telefon</option></select></div>
-            </div>
-            <div><label class="text-t-amber block mb-2">NOTLAR:</label><textarea id="teklif-notlar" rows="3" class="w-full resize-none"></textarea></div>
-            <div class="flex justify-between">
-                <button onclick="closeModal('teklif')" class="btn btn-red">İPTAL</button>
-                <button onclick="saveTeklif()" class="btn">KAYDET</button>
-            </div>
-        </div>
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span>═ TEKLİF GIRIŞI</span>
+      <button class="modal-close" onclick="closeModal('teklif')">✕</button>
     </div>
+    <div class="modal-body">
+      <div class="form-grid g2">
+        <div class="field">
+          <label>İŞ ID (opsiyonel)</label>
+          <input type="text" id="teklif-isid" placeholder="20250402-XXXXXXXX">
+        </div>
+        <div class="field">
+          <label>FİRMA ADI *</label>
+          <input type="text" id="teklif-firma-ad" placeholder="ABC Teknik...">
+        </div>
+      </div>
+      <div class="field mt8">
+        <label>HİZMET</label>
+        <input type="text" id="teklif-hizmet" placeholder="Klima bakım...">
+      </div>
+      <div class="form-grid g4 mt8">
+        <div class="field" style="grid-column:span 2;">
+          <label>KDVSİZ TUTAR *</label>
+          <input type="number" id="teklif-tutar" placeholder="0.00" oninput="calcTeklif()">
+        </div>
+        <div class="field">
+          <label>KDV %</label>
+          <select id="teklif-kdv" onchange="calcTeklif()">
+            <option value="20">%20</option>
+            <option value="10">%10</option>
+            <option value="1">%1</option>
+            <option value="0">%0</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>PARA BİRİMİ</label>
+          <select id="teklif-para">
+            <option value="TRY">₺ TRY</option>
+            <option value="USD">$ USD</option>
+            <option value="EUR">€ EUR</option>
+          </select>
+        </div>
+      </div>
+      <div id="teklif-hesap" class="mt8 hidden" style="background:var(--bg2); border:1px solid var(--green-dark); padding:10px; font-size:12px;">
+        <div class="flex-between"><span class="text-amber">KDVSİZ:</span> <span id="th-kdvsiz" class="text-white fw7">0</span></div>
+        <div class="flex-between"><span class="text-amber">KDV:</span> <span id="th-kdv" class="text-amber fw7">0</span></div>
+        <div class="flex-between" style="border-top:1px solid var(--gray); margin-top:4px; padding-top:4px;"><span class="text-green fw7">TOPLAM:</span> <span id="th-toplam" class="text-green fw7" style="font-size:16px;">0</span></div>
+      </div>
+      <div class="form-grid g2 mt8">
+        <div class="field">
+          <label>KAYNAK</label>
+          <select id="teklif-kaynak">
+            <option value="">— SEÇ —</option>
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Eposta">E-posta</option>
+            <option value="Telefon">Telefon</option>
+            <option value="Yüzyüze">Yüz yüze</option>
+            <option value="Web">Web formu</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ÖDEME VADESİ (GÜN)</label>
+          <input type="number" id="teklif-vade" placeholder="30" value="30">
+        </div>
+      </div>
+      <div class="field mt8">
+        <label>NOTLAR</label>
+        <textarea id="teklif-notlar" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('teklif')">İPTAL</button>
+      <button class="btn btn-fill" onclick="saveTeklif()">KAYDET</button>
+    </div>
+  </div>
 </div>
 
+<!-- YENİ FATURA -->
 <div id="modal-fatura" class="modal">
-    <div class="border-4 border-t-border bg-t-bg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl flex justify-between">
-            <span>═══ YENİ FATURA ═══</span>
-            <button onclick="closeModal('fatura')" class="hover:text-t-red">✕</button>
-        </div>
-        <div class="p-6 space-y-6">
-            <div class="grid grid-cols-2 gap-6">
-                <div><label class="text-t-amber block mb-2">FİRMA:</label><input type="text" id="fatura-firma" placeholder="Firma..." class="w-full"></div>
-                <div><label class="text-t-amber block mb-2">FATURA NO:</label><input type="text" id="fatura-no" placeholder="2024/001" class="w-full"></div>
-            </div>
-            <div class="grid grid-cols-3 gap-6">
-                <div><label class="text-t-amber block mb-2">TUTAR:</label><input type="number" id="fatura-tutar" placeholder="0" class="w-full"></div>
-                <div><label class="text-t-amber block mb-2">VADE:</label><input type="number" id="fatura-vade" placeholder="30" class="w-full"></div>
-                <div><label class="text-t-amber block mb-2">DURUM:</label><select id="fatura-durum" class="w-full"><option value="BEKLIYOR">BEKLİYOR</option><option value="ODENDI">ÖDENDİ</option></select></div>
-            </div>
-            <div><label class="text-t-amber block mb-2">NOTLAR:</label><textarea id="fatura-notlar" rows="3" class="w-full resize-none"></textarea></div>
-            <div class="flex justify-between">
-                <button onclick="closeModal('fatura')" class="btn btn-red">İPTAL</button>
-                <button onclick="saveFatura()" class="btn">KAYDET</button>
-            </div>
-        </div>
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span>═ FATURA GIRIŞI</span>
+      <button class="modal-close" onclick="closeModal('fatura')">✕</button>
     </div>
+    <div class="modal-body">
+      <div class="form-grid g2">
+        <div class="field">
+          <label>İŞ ID (opsiyonel)</label>
+          <input type="text" id="fatura-isid" placeholder="20250402-XXXXXXXX">
+        </div>
+        <div class="field">
+          <label>FİRMA ADI *</label>
+          <input type="text" id="fatura-firma-ad" placeholder="ABC Teknik...">
+        </div>
+      </div>
+      <div class="form-grid g2 mt8">
+        <div class="field">
+          <label>FATURA NO *</label>
+          <input type="text" id="fatura-no" placeholder="2025/0001">
+        </div>
+        <div class="field">
+          <label>PARA BİRİMİ</label>
+          <select id="fatura-para">
+            <option value="TRY">₺ TRY</option>
+            <option value="USD">$ USD</option>
+            <option value="EUR">€ EUR</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid g4 mt8">
+        <div class="field" style="grid-column:span 2;">
+          <label>KDVSİZ TUTAR *</label>
+          <input type="number" id="fatura-tutar" placeholder="0.00" oninput="calcFatura()">
+        </div>
+        <div class="field">
+          <label>KDV %</label>
+          <select id="fatura-kdv" onchange="calcFatura()">
+            <option value="20">%20</option>
+            <option value="10">%10</option>
+            <option value="1">%1</option>
+            <option value="0">%0</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>VADE TARİHİ</label>
+          <input type="text" id="fatura-vade" placeholder="01.02.2025">
+        </div>
+      </div>
+      <div id="fatura-hesap" class="mt8 hidden" style="background:var(--bg2); border:1px solid var(--green-dark); padding:10px; font-size:12px;">
+        <div class="flex-between"><span class="text-amber">KDVSİZ:</span> <span id="fh-kdvsiz" class="text-white fw7">0</span></div>
+        <div class="flex-between"><span class="text-amber">KDV:</span> <span id="fh-kdv" class="text-amber fw7">0</span></div>
+        <div class="flex-between" style="border-top:1px solid var(--gray); margin-top:4px; padding-top:4px;"><span class="text-green fw7">TOPLAM:</span> <span id="fh-toplam" class="text-green fw7" style="font-size:16px;">0</span></div>
+      </div>
+      <div class="field mt8">
+        <label>NOTLAR</label>
+        <textarea id="fatura-notlar" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('fatura')">İPTAL</button>
+      <button class="btn btn-fill" onclick="saveFatura()">KAYDET</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAFHA GEÇİŞ -->
+<div id="modal-safha" class="modal">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-hdr">
+      <span>═ SAFHA GEÇİŞ</span>
+      <button class="modal-close" onclick="closeModal('safha')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>YENİ SAFHA</label>
+        <select id="safha-sec">
+          <option value="ARASTIRMA">1 ─ Fiyat Teklifi Toplanması</option>
+          <option value="SECIM">2 ─ En Doğru Fiyat Seçimi</option>
+          <option value="CARI">3 ─ Cari Hesap / AS400 İşlemi</option>
+          <option value="KONTROL">4 ─ İş Bitimi Kontrol & Teyit</option>
+          <option value="FATURA">5 ─ Fatura & Ödeme Takibi</option>
+        </select>
+      </div>
+      <div class="field mt8">
+        <label>AÇIKLAMA / NOT</label>
+        <textarea id="safha-aciklama" rows="3" placeholder="Bu safha hakkında notunuz..."></textarea>
+      </div>
+      <input type="hidden" id="safha-is-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('safha')">İPTAL</button>
+      <button class="btn btn-fill" onclick="saveSafha()">SAFHA GEÇİR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ZAMELİNE NOT EKLE -->
+<div id="modal-not" class="modal">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-hdr">
+      <span>═ ZAMAN ÇİZELGESİNE NOT</span>
+      <button class="modal-close" onclick="closeModal('not')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>SAFHA</label>
+        <select id="not-safha">
+          <option value="ARASTIRMA">1 ─ Fiyat Teklifi Toplanması</option>
+          <option value="SECIM">2 ─ En Doğru Fiyat Seçimi</option>
+          <option value="CARI">3 ─ Cari Hesap / AS400 İşlemi</option>
+          <option value="KONTROL">4 ─ İş Bitimi Kontrol & Teyit</option>
+          <option value="FATURA">5 ─ Fatura & Ödeme Takibi</option>
+        </select>
+      </div>
+      <div class="field mt8">
+        <label>AKSİYON (kısa başlık)</label>
+        <input type="text" id="not-aksiyon" placeholder="Toplantı yapıldı, Görüşme...">
+      </div>
+      <div class="field mt8">
+        <label>AÇIKLAMA</label>
+        <textarea id="not-aciklama" rows="4" placeholder="Detaylar..."></textarea>
+      </div>
+      <input type="hidden" id="not-is-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('not')">İPTAL</button>
+      <button class="btn btn-fill" onclick="saveNot()">EKLE</button>
+    </div>
+  </div>
+</div>
+
+<!-- GÖZLEM / ONAY (CTURHAN) -->
+<div id="modal-onay" class="modal">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-hdr">
+      <span>═ GÖRÜLDÜ & ONAY</span>
+      <button class="modal-close" onclick="closeModal('onay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-box mb8">Bu işin gidişatını gördüğünüzü teyit ediyorsunuz.</div>
+      <div class="field">
+        <label>DURUM</label>
+        <select id="onay-durum">
+          <option value="GORULDU">GÖRÜLDÜ</option>
+          <option value="ONAYLANDI">ONAYLANDI</option>
+          <option value="BEKLEMEDE">BEKLEMEDE</option>
+        </select>
+      </div>
+      <div class="field mt8">
+        <label>YORUM / NOT</label>
+        <textarea id="onay-yorum" rows="4" placeholder="İsteğe bağlı yorum..."></textarea>
+      </div>
+      <input type="hidden" id="onay-is-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('onay')">İPTAL</button>
+      <button class="btn btn-cyan btn-fill" onclick="saveOnay()">ONAYLA</button>
+    </div>
+  </div>
+</div>
+
+<!-- AS400 MODAL -->
+<div id="modal-as400" class="modal">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-hdr" style="background:var(--amber); color:var(--bg);">
+      <span>═ AS400 KAYIT</span>
+      <button class="modal-close" onclick="closeModal('as400')" style="color:var(--bg);">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-box" style="border-color:var(--amber);">
+        ⚠ AS400 sistemine CARİ HESAP işlendikten sonra bu ekranı doldurun.
+      </div>
+      <div class="field mt8">
+        <label>AS400 REFERANS NO</label>
+        <input type="text" id="as400-ref" placeholder="AS400-2025-XXXX">
+      </div>
+      <input type="hidden" id="as400-is-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="closeModal('as400')">İPTAL</button>
+      <button class="btn btn-amber" onclick="saveAS400()">KAYDET</button>
+    </div>
+  </div>
 </div>
 
 <script>
-// ========== GLOBALS ==========
+// ═══════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════
 let currentUser = null;
-let selectedFirmalar = [];
+let currentTab = 'isler';
+let allFirmalar = [];
+let selectedFirmaIds = [];
+let islerData = [];
 
-// ========== TIME ==========
+const SAFHALAR = [
+  {id:1, kod:'ARASTIRMA', ad:'FİYAT TEKLİFİ'},
+  {id:2, kod:'SECIM',     ad:'FİYAT SEÇİMİ'},
+  {id:3, kod:'CARI',      ad:'CARİ/AS400'},
+  {id:4, kod:'KONTROL',   ad:'KONTROL'},
+  {id:5, kod:'FATURA',    ad:'FATURA'},
+];
+
+const ROLES = { NVARNALI:'KULLANICI', ACOMERT:'KULLANICI', CTURHAN:'GOZLEMCI' };
+
+// ═══════════════════════════════════════════
+// TIME
+// ═══════════════════════════════════════════
 function updateTime() {
-    const now = new Date();
-    document.getElementById('current-time').textContent = now.toLocaleTimeString('tr-TR');
-    document.getElementById('current-date').textContent = now.toLocaleDateString('tr-TR');
+  const n = new Date();
+  document.getElementById('sb-time').textContent = n.toLocaleTimeString('tr-TR');
+  document.getElementById('sb-date').textContent = n.toLocaleDateString('tr-TR');
 }
 setInterval(updateTime, 1000);
 updateTime();
 
-// ========== AUTH ==========
+// ═══════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════
 function login(user) {
-    currentUser = user;
-    document.getElementById('current-user').textContent = user;
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('main-app').classList.remove('hidden');
-    loadData('isler');
+  currentUser = user;
+  document.getElementById('sb-user').textContent = user;
+  document.getElementById('sb-user').className = ROLES[user] === 'GOZLEMCI' ? 'status-gozlemci' : 'status-user';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  // Prefill atanan field
+  document.getElementById('is-atanan').value = user;
+  showTab('isler');
 }
 
 function logout() {
-    currentUser = null;
-    document.getElementById('login-screen').classList.remove('hidden');
-    document.getElementById('main-app').classList.add('hidden');
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
 }
 
-// ========== TABS ==========
+// ═══════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (!currentUser) return;
+  const tag = document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+    if (e.key === 'Escape') { closeAllModals(); e.preventDefault(); }
+    return;
+  }
+  switch(e.key) {
+    case 'F1': e.preventDefault(); showTab('isler'); break;
+    case 'F2': e.preventDefault(); showTab('firmalar'); break;
+    case 'F3': e.preventDefault(); showTab('arastirma'); break;
+    case 'F4': e.preventDefault(); showTab('teklifler'); break;
+    case 'F5': e.preventDefault(); showTab('faturalar'); break;
+    case 'F9': e.preventDefault(); openModal('is'); break;
+    case 'Escape': closeAllModals(); break;
+  }
+});
+
+function closeAllModals() {
+  document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+const TAB_LABELS = {
+  isler:'İŞLER', firmalar:'FİRMALAR', arastirma:'ARAŞTIRMA',
+  teklifler:'TEKLİFLER', faturalar:'FATURALAR', 'is-detay':'İŞ DETAYI'
+};
+
 function showTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-    
-    document.getElementById(`content-${tab}`).classList.remove('hidden');
-    document.getElementById(`tab-${tab}`).classList.add('active');
-    
-    loadData(tab);
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.fkey').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(`tab-${tab}`);
+  if (el) el.classList.remove('hidden');
+  const fk = document.getElementById(`fk-${tab}`);
+  if (fk) fk.classList.add('active');
+  document.getElementById('sb-tab').textContent = TAB_LABELS[tab] || '';
+  currentTab = tab;
+  if (tab !== 'is-detay') loadTab(tab);
 }
 
-// ========== MODALS ==========
-function openModal(type) {
-    document.getElementById(`modal-${type}`).classList.add('show');
-    if (type === 'is') document.getElementById('is-baslangic').value = new Date().toLocaleDateString('tr-TR');
-}
-function closeModal(type) {
-    document.getElementById(`modal-${type}`).classList.remove('show');
+async function loadTab(tab) {
+  switch(tab) {
+    case 'isler': await loadIsler(); break;
+    case 'firmalar': await loadFirmalar(); break;
+    case 'teklifler': await loadTeklifler(); break;
+    case 'faturalar': await loadFaturalar(); break;
+  }
 }
 
-// ========== API ==========
+// ═══════════════════════════════════════════
+// API HELPER
+// ═══════════════════════════════════════════
 async function api(endpoint, method='GET', data=null) {
-    const opts = {method, headers: {'X-User': currentUser}};
-    if (data) {
-        opts.headers['Content-Type'] = 'application/json';
-        opts.body = JSON.stringify(data);
-    }
+  const opts = { method, headers: { 'X-User': currentUser } };
+  if (data) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(data);
+  }
+  try {
     const res = await fetch(`/api/${endpoint}`, opts);
-    return res.json();
+    return await res.json();
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
 }
 
-// ========== LOAD ==========
-async function loadData(tab) {
-    try {
-        const res = await api(tab);
-        if (!res.success) return;
-        
-        const data = res.data || [];
-        
-        switch(tab) {
-            case 'isler': renderIsler(data); break;
-            case 'firmalar': renderFirmalar(data); break;
-            case 'teklifler': renderTeklifler(data); break;
-            case 'faturalar': renderFaturalar(data); break;
-        }
-    } catch(e) {
-        console.error(e);
-    }
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+async function initSystem() {
+  if (!confirm('SİSTEM SIFIRLANACAK! Tüm veriler silinir. Devam?')) return;
+  const r = await api('init', 'POST');
+  if (r.success) alert('✓ Sistem başlatıldı: ' + r.created.join(', '));
+  else alert('HATA: ' + r.error);
 }
 
-// ========== RENDER ==========
+// ═══════════════════════════════════════════
+// FORMAT
+// ═══════════════════════════════════════════
+function fmt(n) {
+  if (!n && n!==0) return '-';
+  return Number(n).toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function badge(durum) {
+  const d = (durum || '').toString().toUpperCase();
+  const map = {
+    'DEVAM':'devam','TAMAM':'tamam','İPTAL':'iptal','AKTIF':'aktif',
+    'KABUL':'kabul','RED':'red','BEKLEMEDE':'beklemede','BEKLIYOR':'bekliyor',
+    'ODENDI':'odendi','ARASTIRMA':'arastirma','SECIM':'secim','CARI':'cari',
+    'KONTROL':'kontrol','FATURA':'fatura'
+  };
+  const cls = map[d] || 'beklemede';
+  return `<span class="badge b-${cls}">${d}</span>`;
+}
+
+function safhaBadge(kod) {
+  const s = SAFHALAR.find(x => x.kod === kod);
+  const num = s ? s.id : '?';
+  return `<span class="badge b-${(kod||'').toLowerCase()}">${num}/${kod||'?'}</span>`;
+}
+
+// ═══════════════════════════════════════════
+// İŞLER
+// ═══════════════════════════════════════════
+async function loadIsler() {
+  const r = await api('isler');
+  if (!r.success) { showErr('isler-tbody', 8, r.error); return; }
+  islerData = r.data || [];
+  renderIsler(islerData);
+}
+
 function renderIsler(data) {
-    document.getElementById('is-total').textContent = data.length;
-    document.getElementById('is-devam').textContent = data.filter(x => x.Durum === 'DEVAM').length;
-    document.getElementById('is-tamam').textContent = data.filter(x => x.Durum === 'TAMAM').length;
-    
-    const tbody = document.getElementById('isler-list');
-    tbody.innerHTML = data.length ? data.map(i => `
-        <tr class="border-b border-t-border hover:bg-gray-900">
-            <td class="p-3 border-r border-t-border">${i.Hizmet || ''}</td>
-            <td class="p-3 border-r border-t-border">${i.Firma || ''}</td>
-            <td class="p-3 border-r border-t-border text-center">${i.Baslangic || ''}</td>
-            <td class="p-3 border-r border-t-border text-center">${renderDurum(i.Durum)}</td>
-            <td class="p-3 border-r border-t-border text-center">${i.Kanitlar ? '<span class="text-t-cyan">VAR</span>' : '-'}</td>
-            <td class="p-3 text-center"><button onclick="deleteIs('${i.ID}')" class="text-t-red">[SİL]</button></td>
-        </tr>
-    `).join('') : '<tr><td colspan="6" class="p-6 text-center text-gray-600">══ HENÜZ İŞ YOK ══</td></tr>';
+  const c = data.length;
+  setEl('is-toplam', c);
+  setEl('is-devam', data.filter(x=>x.Durum==='DEVAM').length);
+  setEl('is-bitti', data.filter(x=>x.Durum==='TAMAM').length);
+  setEl('is-arastirma', data.filter(x=>x.MevcutSafha==='ARASTIRMA').length);
+  setEl('is-fatura', data.filter(x=>x.MevcutSafha==='FATURA').length);
+
+  const tbody = document.getElementById('isler-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray" style="padding:20px;">── KAYIT YOK ──</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(i => {
+    const as400 = i.AS400Islendi && i.AS400Islendi !== 'HAYIR'
+      ? `<span class="text-amber fs10">✓ ${i.AS400Islendi.substring(0,20)}</span>`
+      : `<span class="text-gray fs10">—</span>`;
+    return `
+    <tr class="row-sel" onclick="showIsDetay('${i.ID}')">
+      <td><span class="text-white fw7">${i.Hizmet||''}</span><br><span class="fs10 text-gray">${i.ID}</span></td>
+      <td>${i.AtananKisiler||''}</td>
+      <td>${i.FirmaAd||'—'}</td>
+      <td>${safhaBadge(i.MevcutSafha)}</td>
+      <td>${badge(i.Durum)}</td>
+      <td class="fs10">${i.Baslangic||''}</td>
+      <td>${as400}</td>
+      <td onclick="event.stopPropagation()">
+        <div class="flex gap4">
+          <button class="btn btn-sm" onclick="openSafhaModal('${i.ID}')">SAFHA</button>
+          <button class="btn btn-sm btn-red" onclick="deleteIs('${i.ID}')">SİL</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
-function renderFirmalar(data) {
-    document.getElementById('firma-total').textContent = data.length;
-    
-    const tbody = document.getElementById('firmalar-list');
-    tbody.innerHTML = data.length ? data.map(f => `
-        <tr class="border-b border-t-border hover:bg-gray-900">
-            <td class="p-3 border-r border-t-border text-center"><input type="checkbox" onchange="toggleFirma('${f.ID}')" class="w-5 h-5"></td>
-            <td class="p-3 border-r border-t-border">${f.Ad || ''}</td>
-            <td class="p-3 border-r border-t-border text-t-cyan">${f.Telefon || '-'}</td>
-            <td class="p-3 border-r border-t-border text-t-cyan">${f.Eposta || '-'}</td>
-            <td class="p-3 border-r border-t-border">${f.Konum || ''}</td>
-            <td class="p-3 border-r border-t-border">${f.Hizmet || ''}</td>
-            <td class="p-3 text-center"><button onclick="deleteFirma('${f.ID}')" class="text-t-red">[SİL]</button></td>
-        </tr>
-    `).join('') : '<tr><td colspan="7" class="p-6 text-center text-gray-600">══ HENÜZ FİRMA YOK ══</td></tr>';
+async function showIsDetay(isId) {
+  const is = islerData.find(x => x.ID === isId);
+  if (!is) return;
+
+  const [zamanR, onayR, teklifR, faturaR] = await Promise.all([
+    api(`zaman/${isId}`),
+    api(`onay/${isId}`),
+    api('teklifler'),
+    api('faturalar'),
+  ]);
+
+  const zamanlar = (zamanR.data || []).reverse();
+  const onaylar = onayR.data || [];
+  const teklifler = (teklifR.data || []).filter(t => t.IsId === isId);
+  const faturalar = (faturaR.data || []).filter(f => f.IsId === isId);
+
+  const currentSafhaIdx = SAFHALAR.findIndex(s => s.kod === is.MevcutSafha);
+
+  const safhaBar = SAFHALAR.map((s, idx) => {
+    let cls = idx < currentSafhaIdx ? 'done' : (idx === currentSafhaIdx ? 'active' : 'pending');
+    return `<div class="safha-step ${cls}">${s.id}<br>${s.ad}</div>`;
+  }).join('');
+
+  const isGozlemci = ROLES[currentUser] === 'GOZLEMCI';
+
+  const teklifRows = teklifler.length ? teklifler.map(t => `
+    <tr>
+      <td>${t.FirmaAd||''}</td>
+      <td class="text-right">${fmt(t.Tutar)}</td>
+      <td class="text-right text-amber">${fmt(t.KDVTutar)}</td>
+      <td class="text-right text-green fw7">${fmt(t.ToplamTutar)} ${t.ParaBirimi||'TRY'}</td>
+      <td>${t.Vade||'30'} gün</td>
+      <td>${badge(t.Durum)} ${t.Secildi==='EVET'?'<span class="text-green fw7">★SEÇİLDİ</span>':''}</td>
+      <td>
+        ${t.Secildi!=='EVET' ? `<button class="btn btn-sm btn-cyan" onclick="secTeklif('${t.ID}','${isId}')">SEÇ</button>` : ''}
+        <button class="btn btn-sm btn-red" onclick="deleteTeklif('${t.ID}')">SİL</button>
+      </td>
+    </tr>`).join('') :
+    '<tr><td colspan="7" class="text-gray text-center" style="padding:10px;">— Henüz teklif yok —</td></tr>';
+
+  const faturaRows = faturalar.length ? faturalar.map(f => `
+    <tr>
+      <td>${f.FaturaNo||''}</td>
+      <td>${f.FirmaAd||f.FirmaId||''}</td>
+      <td class="text-right text-green fw7">${fmt(f.ToplamTutar)} ${f.ParaBirimi||'TRY'}</td>
+      <td class="fs10">${f.VadeTarihi||''}</td>
+      <td>${badge(f.OdemeDurumu)}</td>
+      <td>
+        ${f.OdemeDurumu!=='ODENDI'?`<button class="btn btn-sm btn-amber" onclick="odemeYap('${f.ID}')">ÖDENDİ</button>`:''}
+        <button class="btn btn-sm btn-red" onclick="deleteFatura('${f.ID}')">SİL</button>
+      </td>
+    </tr>`).join('') :
+    '<tr><td colspan="6" class="text-gray text-center" style="padding:10px;">— Henüz fatura yok —</td></tr>';
+
+  const onayHtml = onaylar.length ? onaylar.map(o => `
+    <div class="onay-item">
+      <div class="onay-hdr"><span>${o.Gozlemci}</span><span>${o.Tarih} — ${badge(o.SafhaDurumu)}</span></div>
+      ${o.Yorum ? `<div class="onay-yorum">${o.Yorum}</div>` : ''}
+    </div>`).join('') :
+    '<div class="text-gray fs11" style="padding:8px;">— Henüz gözlem/onay yok —</div>';
+
+  const zamanHtml = zamanlar.length ? zamanlar.map(z => `
+    <div class="timeline-item tl-tip-${z.Tip||'NOT'}">
+      <div class="tl-time">${z.Tarih||''}</div>
+      <div class="tl-content">
+        <div class="tl-aksiyon">${z.Aksiyon||''}</div>
+        ${z.Aciklama ? `<div class="tl-aciklama">${z.Aciklama}</div>` : ''}
+      </div>
+      <div class="tl-user">${z.Kullanici||''}</div>
+    </div>`).join('') :
+    '<div class="text-gray fs11" style="padding:8px;">— Henüz kayıt yok —</div>';
+
+  const html = `
+    <div style="margin-bottom:10px;">
+      <div class="safha-bar">${safhaBar}</div>
+    </div>
+
+    <div class="detail-panel">
+      <div>
+        <!-- İŞ BİLGİLERİ -->
+        <div style="border:1px solid var(--gray); margin-bottom:10px;">
+          <div class="panel-hdr" style="font-size:11px;">═ İŞ BİLGİLERİ</div>
+          <div class="info-grid" style="padding:10px;">
+            <div class="info-item"><div class="lbl">HİZMET</div><div class="val">${is.Hizmet||''}</div></div>
+            <div class="info-item"><div class="lbl">ID</div><div class="val fs10">${is.ID}</div></div>
+            <div class="info-item"><div class="lbl">OLUŞTURAN</div><div class="val">${is.Olusturan||''}</div></div>
+            <div class="info-item"><div class="lbl">ATANAN</div><div class="val">${is.AtananKisiler||''}</div></div>
+            <div class="info-item"><div class="lbl">BAŞLANGIÇ</div><div class="val">${is.Baslangic||''}</div></div>
+            <div class="info-item"><div class="lbl">HEDEF BİTİŞ</div><div class="val">${is.HedefBitis||'—'}</div></div>
+            <div class="info-item"><div class="lbl">DURUM</div><div class="val">${badge(is.Durum)}</div></div>
+            <div class="info-item"><div class="lbl">AS400</div><div class="val fs10 text-amber">${is.AS400Islendi||'HAYIR'}</div></div>
+          </div>
+          ${is.Aciklama ? `<div style="padding:0 10px 10px; font-size:12px; color:var(--white);">${is.Aciklama}</div>` : ''}
+        </div>
+
+        <!-- AKSİYONLAR -->
+        <div class="flex gap8 mb8 flex-wrap">
+          <button class="btn btn-sm" onclick="openSafhaModal('${is.ID}')">SAFHA GEÇ</button>
+          <button class="btn btn-sm btn-amber" onclick="openNotModal('${is.ID}')">+ NOT EKLE</button>
+          <button class="btn btn-sm btn-cyan" onclick="openTeklifModalForIs('${is.ID}')">+ TEKLİF</button>
+          <button class="btn btn-sm" onclick="openFaturaModalForIs('${is.ID}')">+ FATURA</button>
+          <button class="btn btn-sm btn-amber" onclick="openAS400Modal('${is.ID}')">AS400 İŞLE</button>
+          ${isGozlemci ? `<button class="btn btn-sm btn-cyan" onclick="openOnayModal('${is.ID}')">✓ GÖRÜLDÜ</button>` : ''}
+        </div>
+
+        <!-- TEKLİFLER -->
+        <div style="border:1px solid var(--gray); margin-bottom:10px;">
+          <div class="panel-hdr" style="font-size:11px;">═ TEKLİFLER (${teklifler.length})</div>
+          <div class="t-wrap">
+            <table><thead><tr>
+              <th>FİRMA</th><th>KDVSİZ</th><th>KDV</th><th>TOPLAM</th><th>VADE</th><th>DURUM</th><th>İŞLEM</th>
+            </tr></thead>
+            <tbody>${teklifRows}</tbody></table>
+          </div>
+        </div>
+
+        <!-- FATURALAR -->
+        <div style="border:1px solid var(--gray); margin-bottom:10px;">
+          <div class="panel-hdr" style="font-size:11px;">═ FATURALAR (${faturalar.length})</div>
+          <div class="t-wrap">
+            <table><thead><tr>
+              <th>NO</th><th>FİRMA</th><th>TOPLAM</th><th>VADE</th><th>DURUM</th><th>İŞLEM</th>
+            </tr></thead>
+            <tbody>${faturaRows}</tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <!-- GÖZLEM / ONAYLAR -->
+        <div style="border:1px solid var(--cyan); margin-bottom:10px;">
+          <div class="panel-hdr" style="font-size:11px; background:var(--cyan); color:var(--bg);">═ GÖZLEM & ONAYLAR</div>
+          <div style="padding:8px; max-height:200px; overflow-y:auto;">${onayHtml}</div>
+        </div>
+
+        <!-- ZAMAN ÇİZELGESİ -->
+        <div style="border:1px solid var(--gray);">
+          <div class="panel-hdr" style="font-size:11px;">═ ZAMAN ÇİZELGESİ</div>
+          <div class="timeline" style="max-height:400px; overflow-y:auto;">${zamanHtml}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('is-detay-content').innerHTML = html;
+
+  document.getElementById('tab-isler').classList.add('hidden');
+  document.querySelectorAll('.fkey').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-is-detay').classList.remove('hidden');
+  document.getElementById('sb-tab').textContent = `İŞ: ${is.Hizmet}`;
 }
 
-function renderTeklifler(data) {
-    document.getElementById('teklif-total').textContent = data.length;
-    
-    const tbody = document.getElementById('teklifler-list');
-    tbody.innerHTML = data.length ? data.map(t => `
-        <tr class="border-b border-t-border hover:bg-gray-900">
-            <td class="p-3 border-r border-t-border">${t.FirmaAd || ''}</td>
-            <td class="p-3 border-r border-t-border">${t.Hizmet || ''}</td>
-            <td class="p-3 border-r border-t-border text-right text-t-amber">₺${t.Tutar || '0'}</td>
-            <td class="p-3 border-r border-t-border text-center">${t.Kaynak || '-'}</td>
-            <td class="p-3 border-r border-t-border text-center">${renderDurum(t.Durum)}</td>
-            <td class="p-3 text-center"><button onclick="deleteTeklif('${t.ID}')" class="text-t-red">[SİL]</button></td>
-        </tr>
-    `).join('') : '<tr><td colspan="6" class="p-6 text-center text-gray-600">══ HENÜZ TEKLİF YOK ══</td></tr>';
-}
-
-function renderFaturalar(data) {
-    document.getElementById('fatura-total').textContent = data.length;
-    
-    const tbody = document.getElementById('faturalar-list');
-    tbody.innerHTML = data.length ? data.map(f => `
-        <tr class="border-b border-t-border hover:bg-gray-900">
-            <td class="p-3 border-r border-t-border">${f.FirmaId || ''}</td>
-            <td class="p-3 border-r border-t-border">${f.FaturaNo || ''}</td>
-            <td class="p-3 border-r border-t-border text-right text-t-amber">₺${f.Tutar || '0'}</td>
-            <td class="p-3 border-r border-t-border text-center">${f.Vade || 0} gün</td>
-            <td class="p-3 border-r border-t-border text-center">${renderDurum(f.Durum)}</td>
-            <td class="p-3 text-center"><button onclick="deleteFatura('${f.ID}')" class="text-t-red">[SİL]</button></td>
-        </tr>
-    `).join('') : '<tr><td colspan="6" class="p-6 text-center text-gray-600">══ HENÜZ FATURA YOK ══</td></tr>';
-}
-
-function renderDurum(d) {
-    const cls = {'DEVAM':'bg-t-amber','TAMAM':'bg-t-green','BEKLEMEDE':'bg-t-amber','KABUL':'bg-t-green','RED':'bg-t-red','BEKLIYOR':'bg-t-amber','ODENDI':'bg-t-green'};
-    return `<span class="badge ${cls[d]||'bg-gray-600'} text-black">${d||'BEKLEMEDE'}</span>`;
-}
-
-// ========== CRUD ==========
 async function saveIs() {
-    const data = {
-        hizmet: document.getElementById('is-hizmet').value,
-        firma: document.getElementById('is-firma').value,
-        baslangic: document.getElementById('is-baslangic').value,
-        durum: document.getElementById('is-durum').value,
-        notlar: document.getElementById('is-notlar').value
-    };
-    if (!data.hizmet) { alert('Hizmet gerekli!'); return; }
-    
-    const res = await api('is', 'POST', data);
-    if (res.success) { closeModal('is'); loadData('isler'); alert('✓ İş eklendi'); }
+  const hizmet = v('is-hizmet');
+  if (!hizmet) { alert('Hizmet gerekli!'); return; }
+  const r = await api('is', 'POST', {
+    hizmet, aciklama: v('is-aciklama'),
+    atananKisiler: v('is-atanan') || currentUser,
+    firmaAd: v('is-firma-ad'),
+    baslangic: v('is-baslangic') || today(),
+    hedefBitis: v('is-hedef-bitis'),
+    notlar: v('is-notlar'),
+  });
+  if (r.success) { closeModal('is'); clearForm(['is-hizmet','is-aciklama','is-firma-ad','is-hedef-bitis','is-notlar']); loadIsler(); }
+  else alert('HATA: ' + r.error);
 }
 
 async function deleteIs(id) {
-    if (!confirm('Silmek istediğinize emin misiniz?')) return;
-    await api(`is/${id}`, 'DELETE');
-    loadData('isler');
+  if (!confirm('Silinsin mi?')) return;
+  await api(`is/${id}`, 'DELETE');
+  loadIsler();
+}
+
+function openSafhaModal(isId) {
+  document.getElementById('safha-is-id').value = isId;
+  const is = islerData.find(x => x.ID === isId);
+  if (is) document.getElementById('safha-sec').value = is.MevcutSafha || 'ARASTIRMA';
+  openModal('safha');
+}
+
+async function saveSafha() {
+  const isId = v('safha-is-id');
+  const safha = v('safha-sec');
+  const aciklama = v('safha-aciklama');
+  const r = await api(`is/${isId}/safha`, 'POST', {safha, aciklama});
+  if (r.success) {
+    closeModal('safha');
+    document.getElementById('safha-aciklama').value = '';
+    // Güncelle
+    const idx = islerData.findIndex(x => x.ID === isId);
+    if (idx >= 0) islerData[idx].MevcutSafha = safha;
+    if (currentTab === 'is-detay') showIsDetay(isId);
+    else renderIsler(islerData);
+  } else alert('HATA: ' + r.error);
+}
+
+function openNotModal(isId) {
+  document.getElementById('not-is-id').value = isId;
+  const is = islerData.find(x => x.ID === isId);
+  if (is) document.getElementById('not-safha').value = is.MevcutSafha || 'ARASTIRMA';
+  openModal('not');
+}
+
+async function saveNot() {
+  const isId = v('not-is-id');
+  const r = await api(`zaman/${isId}`, 'POST', {
+    safhaKod: v('not-safha'),
+    aksiyon: v('not-aksiyon'),
+    aciklama: v('not-aciklama'),
+    tip: 'NOT'
+  });
+  if (r.success) {
+    closeModal('not');
+    clearForm(['not-aksiyon','not-aciklama']);
+    if (currentTab === 'is-detay') showIsDetay(isId);
+  } else alert('HATA: ' + r.error);
+}
+
+function openAS400Modal(isId) {
+  document.getElementById('as400-is-id').value = isId;
+  openModal('as400');
+}
+
+async function saveAS400() {
+  const isId = v('as400-is-id');
+  const ref = v('as400-ref');
+  const r = await api(`is/${isId}/as400`, 'POST', {ref});
+  if (r.success) {
+    closeModal('as400');
+    document.getElementById('as400-ref').value = '';
+    const idx = islerData.findIndex(x => x.ID === isId);
+    if (idx >= 0) islerData[idx].AS400Islendi = `EVET - ${ref}`;
+    if (currentTab === 'is-detay') showIsDetay(isId);
+    else renderIsler(islerData);
+  } else alert('HATA: ' + r.error);
+}
+
+function openOnayModal(isId) {
+  document.getElementById('onay-is-id').value = isId;
+  openModal('onay');
+}
+
+async function saveOnay() {
+  const isId = v('onay-is-id');
+  const r = await api(`onay/${isId}`, 'POST', {
+    yorum: v('onay-yorum'),
+    safhaDurumu: v('onay-durum'),
+  });
+  if (r.success) {
+    closeModal('onay');
+    document.getElementById('onay-yorum').value = '';
+    if (currentTab === 'is-detay') showIsDetay(isId);
+  } else alert('HATA: ' + r.error);
+}
+
+// ═══════════════════════════════════════════
+// FİRMALAR
+// ═══════════════════════════════════════════
+async function loadFirmalar() {
+  const r = await api('firmalar');
+  if (!r.success) { showErr('firmalar-tbody', 8, r.error); return; }
+  allFirmalar = r.data || [];
+  renderFirmalar(allFirmalar);
+}
+
+function renderFirmalar(data) {
+  setEl('firma-toplam', data.length);
+  const tbody = document.getElementById('firmalar-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-gray" style="padding:20px;">── KAYIT YOK ──</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(f => `
+    <tr>
+      <td><input type="checkbox" onchange="toggleFirma('${f.ID}',this)" ${selectedFirmaIds.includes(f.ID)?'checked':''}></td>
+      <td class="fw7">${f.Ad||''}</td>
+      <td class="text-cyan">${f.Telefon||'—'}</td>
+      <td class="text-cyan">${f.Eposta||'—'}</td>
+      <td>${f.Konum||''}</td>
+      <td>${f.Hizmet||''}</td>
+      <td>${badge(f.Durum)}</td>
+      <td><button class="btn btn-sm btn-red" onclick="deleteFirma('${f.ID}')">SİL</button></td>
+    </tr>`).join('');
+}
+
+function filterFirmalar() {
+  const q = document.getElementById('firma-filter').value.toLowerCase();
+  renderFirmalar(allFirmalar.filter(f =>
+    (f.Ad||'').toLowerCase().includes(q) ||
+    (f.Konum||'').toLowerCase().includes(q) ||
+    (f.Hizmet||'').toLowerCase().includes(q)
+  ));
+}
+
+function toggleFirma(id, chk) {
+  if (chk.checked) { if (!selectedFirmaIds.includes(id)) selectedFirmaIds.push(id); }
+  else selectedFirmaIds = selectedFirmaIds.filter(x=>x!==id);
+}
+
+function toggleAllFirmalar(chk) {
+  selectedFirmaIds = chk.checked ? allFirmalar.map(f=>f.ID) : [];
+  document.querySelectorAll('#firmalar-tbody input[type=checkbox]').forEach(c => c.checked = chk.checked);
 }
 
 async function saveFirma() {
-    const data = {
-        ad: document.getElementById('firma-ad').value,
-        telefon: document.getElementById('firma-telefon').value,
-        eposta: document.getElementById('firma-eposta').value,
-        konum: document.getElementById('firma-konum').value,
-        hizmet: document.getElementById('firma-hizmet').value,
-        notlar: document.getElementById('firma-notlar').value
-    };
-    if (!data.ad) { alert('Firma adı gerekli!'); return; }
-    
-    const res = await api('firma', 'POST', data);
-    if (res.success) { closeModal('firma'); loadData('firmalar'); alert('✓ Firma eklendi'); }
+  const ad = v('firma-ad');
+  if (!ad) { alert('Firma adı gerekli!'); return; }
+  const r = await api('firma', 'POST', {
+    ad, telefon: v('firma-telefon'), eposta: v('firma-eposta'),
+    adres: v('firma-adres'), konum: v('firma-konum'),
+    hizmet: v('firma-hizmet'), web: v('firma-web'), notlar: v('firma-notlar')
+  });
+  if (r.success) {
+    closeModal('firma');
+    clearForm(['firma-ad','firma-telefon','firma-eposta','firma-adres','firma-konum','firma-hizmet','firma-web','firma-notlar']);
+    loadFirmalar();
+  } else alert('HATA: ' + r.error);
 }
 
 async function deleteFirma(id) {
-    if (!confirm('Silmek istediğinize emin misiniz?')) return;
-    await api(`firma/${id}`, 'DELETE');
-    loadData('firmalar');
-}
-
-function toggleFirma(id) {
-    if (selectedFirmalar.includes(id)) selectedFirmalar = selectedFirmalar.filter(x => x !== id);
-    else selectedFirmalar.push(id);
+  if (!confirm('Firma silinsin mi?')) return;
+  await api(`firma/${id}`, 'DELETE');
+  allFirmalar = allFirmalar.filter(f=>f.ID!==id);
+  renderFirmalar(allFirmalar);
 }
 
 async function deleteSelectedFirmalar() {
-    if (!selectedFirmalar.length) { alert('Seçim yok!'); return; }
-    if (!confirm(`${selectedFirmalar.length} firma silinecek. Emin mi?`)) return;
-    await api('firmalar/delete-many', 'POST', {ids: selectedFirmalar});
-    selectedFirmalar = [];
-    loadData('firmalar');
+  if (!selectedFirmaIds.length) { alert('Seçim yok!'); return; }
+  if (!confirm(`${selectedFirmaIds.length} firma silinsin mi?`)) return;
+  await api('firmalar/delete-many', 'POST', {ids: selectedFirmaIds});
+  selectedFirmaIds = [];
+  loadFirmalar();
+}
+
+// ═══════════════════════════════════════════
+// TEKLİFLER
+// ═══════════════════════════════════════════
+async function loadTeklifler() {
+  const r = await api('teklifler');
+  if (!r.success) { showErr('teklifler-tbody', 10, r.error); return; }
+  renderTeklifler(r.data || []);
+}
+
+function renderTeklifler(data) {
+  setEl('teklif-toplam', data.length);
+  const tbody = document.getElementById('teklifler-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-gray" style="padding:20px;">── KAYIT YOK ──</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(t => `
+    <tr>
+      <td class="fs10">${t.IsId||'—'}</td>
+      <td>${t.FirmaAd||''}</td>
+      <td>${t.Hizmet||''}</td>
+      <td class="text-right">${fmt(t.Tutar)} ${t.ParaBirimi||'TRY'}</td>
+      <td class="text-right text-amber">%${t.KDVOrani||20} / ${fmt(t.KDVTutar)}</td>
+      <td class="text-right text-green fw7">${fmt(t.ToplamTutar)}</td>
+      <td>${t.Kaynak||'—'}</td>
+      <td>${t.Vade||'30'} gün</td>
+      <td>${badge(t.Durum)} ${t.Secildi==='EVET'?'<span class="text-green fw7 fs10">★</span>':''}</td>
+      <td>
+        <div class="flex gap4">
+          ${t.Secildi!=='EVET'?`<button class="btn btn-sm btn-cyan" onclick="secTeklif('${t.ID}','${t.IsId}')">SEÇ</button>`:''}
+          <button class="btn btn-sm btn-red" onclick="deleteTeklif('${t.ID}')">SİL</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function calcTeklif() {
+  const tutar = parseFloat(v('teklif-tutar')) || 0;
+  const kdv = parseFloat(v('teklif-kdv')) || 20;
+  const kdvT = tutar * kdv / 100;
+  const top = tutar + kdvT;
+  const para = v('teklif-para') || 'TRY';
+  const sym = {TRY:'₺',USD:'$',EUR:'€'}[para]||'';
+  document.getElementById('th-kdvsiz').textContent = sym + fmt(tutar);
+  document.getElementById('th-kdv').textContent = sym + fmt(kdvT);
+  document.getElementById('th-toplam').textContent = sym + fmt(top);
+  document.getElementById('teklif-hesap').classList.toggle('hidden', tutar === 0);
 }
 
 async function saveTeklif() {
-    const data = {
-        firmaAd: document.getElementById('teklif-firma').value,
-        hizmet: document.getElementById('teklif-hizmet').value,
-        tutar: document.getElementById('teklif-tutar').value,
-        paraBirimi: document.getElementById('teklif-para').value,
-        kaynak: document.getElementById('teklif-kaynak').value,
-        notlar: document.getElementById('teklif-notlar').value
-    };
-    if (!data.firmaAd) { alert('Firma gerekli!'); return; }
-    
-    const res = await api('teklif', 'POST', data);
-    if (res.success) { closeModal('teklif'); loadData('teklifler'); alert('✓ Teklif eklendi'); }
+  const firmaAd = v('teklif-firma-ad');
+  const tutar = v('teklif-tutar');
+  if (!firmaAd || !tutar) { alert('Firma ve tutar gerekli!'); return; }
+  const r = await api('teklif', 'POST', {
+    isId: v('teklif-isid'),
+    firmaAd, hizmet: v('teklif-hizmet'),
+    tutar, kdvOrani: v('teklif-kdv'),
+    paraBirimi: v('teklif-para'),
+    kaynak: v('teklif-kaynak'),
+    vade: v('teklif-vade') || '30',
+    notlar: v('teklif-notlar'),
+  });
+  if (r.success) {
+    closeModal('teklif');
+    clearForm(['teklif-isid','teklif-firma-ad','teklif-hizmet','teklif-tutar','teklif-notlar']);
+    document.getElementById('teklif-hesap').classList.add('hidden');
+    if (currentTab === 'teklifler') loadTeklifler();
+    else if (currentTab === 'is-detay') {
+      const isId = v('teklif-isid');
+      if (isId) showIsDetay(isId);
+    }
+  } else alert('HATA: ' + r.error);
+}
+
+async function secTeklif(teklifId, isId) {
+  if (!confirm('Bu teklif seçilsin mi?')) return;
+  const r = await api(`teklif/${teklifId}/sec`, 'POST', {isId});
+  if (r.success) {
+    if (currentTab === 'is-detay' && isId) showIsDetay(isId);
+    else loadTeklifler();
+  } else alert('HATA: ' + r.error);
 }
 
 async function deleteTeklif(id) {
-    if (!confirm('Silmek istediğinize emin misiniz?')) return;
-    await api(`teklif/${id}`, 'DELETE');
-    loadData('teklifler');
+  if (!confirm('Silinsin mi?')) return;
+  await api(`teklif/${id}`, 'DELETE');
+  loadTeklifler();
+}
+
+function openTeklifModalForIs(isId) {
+  document.getElementById('teklif-isid').value = isId;
+  openModal('teklif');
+}
+
+// ═══════════════════════════════════════════
+// FATURALAR
+// ═══════════════════════════════════════════
+async function loadFaturalar() {
+  const r = await api('faturalar');
+  if (!r.success) { showErr('faturalar-tbody', 9, r.error); return; }
+  renderFaturalar(r.data || []);
+}
+
+function renderFaturalar(data) {
+  setEl('fatura-toplam', data.length);
+  const gecen = data.filter(f => {
+    if (f.OdemeDurumu === 'ODENDI') return false;
+    if (!f.VadeTarihi) return false;
+    const [d,m,y] = f.VadeTarihi.split('.');
+    return new Date(y,m-1,d) < new Date();
+  }).length;
+  setEl('fatura-gecen', gecen);
+
+  const tbody = document.getElementById('faturalar-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-gray" style="padding:20px;">── KAYIT YOK ──</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(f => {
+    const vadeGecmis = f.OdemeDurumu!=='ODENDI' && f.VadeTarihi && (() => {
+      const [d,m,y] = f.VadeTarihi.split('.');
+      return new Date(y,m-1,d) < new Date();
+    })();
+    return `
+    <tr ${vadeGecmis ? 'style="background:#1a0000;"' : ''}>
+      <td class="fs10">${f.IsId||'—'}</td>
+      <td>${f.FirmaAd||f.FirmaId||''}</td>
+      <td class="fw7">${f.FaturaNo||''}</td>
+      <td class="text-right">${fmt(f.Tutar)}</td>
+      <td class="text-right text-green fw7">${fmt(f.ToplamTutar)} ${f.ParaBirimi||'TRY'}</td>
+      <td class="fs10">${f.FaturaTarihi||''}</td>
+      <td class="fs10 ${vadeGecmis?'text-red fw7':''}">${f.VadeTarihi||''}</td>
+      <td>${badge(f.OdemeDurumu)}</td>
+      <td>
+        <div class="flex gap4">
+          ${f.OdemeDurumu!=='ODENDI'?`<button class="btn btn-sm btn-amber" onclick="odemeYap('${f.ID}')">ÖDENDİ</button>`:''}
+          <button class="btn btn-sm btn-red" onclick="deleteFaturaG('${f.ID}')">SİL</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function calcFatura() {
+  const tutar = parseFloat(v('fatura-tutar')) || 0;
+  const kdv = parseFloat(v('fatura-kdv')) || 20;
+  const kdvT = tutar * kdv / 100;
+  const top = tutar + kdvT;
+  const para = v('fatura-para') || 'TRY';
+  const sym = {TRY:'₺',USD:'$',EUR:'€'}[para]||'';
+  document.getElementById('fh-kdvsiz').textContent = sym + fmt(tutar);
+  document.getElementById('fh-kdv').textContent = sym + fmt(kdvT);
+  document.getElementById('fh-toplam').textContent = sym + fmt(top);
+  document.getElementById('fatura-hesap').classList.toggle('hidden', tutar === 0);
 }
 
 async function saveFatura() {
-    const data = {
-        firmaId: document.getElementById('fatura-firma').value,
-        faturaNo: document.getElementById('fatura-no').value,
-        tutar: document.getElementById('fatura-tutar').value,
-        vade: document.getElementById('fatura-vade').value,
-        durum: document.getElementById('fatura-durum').value,
-        notlar: document.getElementById('fatura-notlar').value
-    };
-    if (!data.faturaNo) { alert('Fatura no gerekli!'); return; }
-    
-    const res = await api('fatura', 'POST', data);
-    if (res.success) { closeModal('fatura'); loadData('faturalar'); alert('✓ Fatura eklendi'); }
+  const faturaNo = v('fatura-no');
+  const tutar = v('fatura-tutar');
+  if (!faturaNo || !tutar) { alert('Fatura no ve tutar gerekli!'); return; }
+  const r = await api('fatura', 'POST', {
+    isId: v('fatura-isid'),
+    firmaAd: v('fatura-firma-ad'),
+    faturaNo, tutar,
+    kdvOrani: v('fatura-kdv'),
+    paraBirimi: v('fatura-para'),
+    vadeTarihi: v('fatura-vade'),
+    notlar: v('fatura-notlar'),
+  });
+  if (r.success) {
+    closeModal('fatura');
+    clearForm(['fatura-isid','fatura-firma-ad','fatura-no','fatura-tutar','fatura-vade','fatura-notlar']);
+    document.getElementById('fatura-hesap').classList.add('hidden');
+    if (currentTab === 'faturalar') loadFaturalar();
+    else if (currentTab === 'is-detay') {
+      const isId = v('fatura-isid');
+      if (isId) showIsDetay(isId);
+    }
+  } else alert('HATA: ' + r.error);
+}
+
+async function odemeYap(faturaId) {
+  const not = prompt('Ödeme notu (opsiyonel):') || '';
+  const r = await api(`fatura/${faturaId}/odeme`, 'POST', {not});
+  if (r.success) loadFaturalar();
+  else alert('HATA: ' + r.error);
+}
+
+async function deleteFaturaG(id) {
+  if (!confirm('Silinsin mi?')) return;
+  await api(`fatura/${id}`, 'DELETE');
+  loadFaturalar();
 }
 
 async function deleteFatura(id) {
-    if (!confirm('Silmek istediğinize emin misiniz?')) return;
-    await api(`fatura/${id}`, 'DELETE');
-    loadData('faturalar');
+  if (!confirm('Silinsin mi?')) return;
+  await api(`fatura/${id}`, 'DELETE');
 }
 
-// ========== ARAŞTIRMA ==========
+function openFaturaModalForIs(isId) {
+  document.getElementById('fatura-isid').value = isId;
+  openModal('fatura');
+}
+
+// ═══════════════════════════════════════════
+// ARAŞTIRMA
+// ═══════════════════════════════════════════
 async function startSearch() {
-    const query = document.getElementById('search-query').value;
-    const konum = document.getElementById('search-konum').value;
-    
-    if (!query) { alert('Arama terimi gerekli!'); return; }
-    
-    document.getElementById('search-status').classList.remove('hidden');
-    document.getElementById('search-results').classList.add('hidden');
-    
-    const res = await api('arastirma', 'POST', {query, konum});
-    
-    document.getElementById('search-status').classList.add('hidden');
-    
-    if (res.success && res.results?.length) {
-        document.getElementById('result-count').textContent = res.results.length;
-        document.getElementById('search-results').classList.remove('hidden');
-        document.getElementById('search-results-list').innerHTML = res.results.map(r => `
-            <div class="border-2 border-t-border p-4 mb-3">
-                <div class="text-lg font-bold text-t-cyan mb-2">${r.baslik}</div>
-                <div class="mb-2">
-                    ${r.telefon ? `<span class="text-t-green mr-4">📞 ${r.telefon}</span>` : ''}
-                    ${r.eposta ? `<span class="text-t-green">📧 ${r.eposta}</span>` : ''}
-                </div>
-                <div class="text-sm text-gray-500 mb-3">${r.aciklama || ''}</div>
-                <button onclick="addFirmaFromSearch('${r.baslik}', '${r.telefon}', '${r.eposta}')" class="btn text-sm py-2">+ FİRMA EKLE</button>
-            </div>
-        `).join('');
-    } else {
-        alert('Sonuç bulunamadı');
-    }
+  const query = v('srch-query');
+  const konum = v('srch-konum');
+  if (!query) { alert('Arama terimi gerekli!'); return; }
+
+  show('srch-status', true);
+  show('srch-results-wrap', false);
+
+  const r = await api('arastirma', 'POST', {query, konum});
+  show('srch-status', false);
+
+  if (!r.success || !r.results?.length) {
+    alert(r.error || 'Sonuç bulunamadı');
+    return;
+  }
+
+  setEl('srch-count', r.results.length);
+  show('srch-results-wrap', true);
+
+  document.getElementById('srch-results-list').innerHTML = r.results.map(res => `
+    <div class="sr-card">
+      <div class="sr-title">${res.baslik||''}</div>
+      <div class="sr-contact">
+        ${res.telefon ? `<span class="sr-tel">📞 ${res.telefon}</span>` : ''}
+        ${res.eposta ? `<span class="sr-mail">✉ ${res.eposta}</span>` : ''}
+      </div>
+      ${res.aciklama ? `<div class="sr-desc">${res.aciklama}</div>` : ''}
+      ${res.url ? `<div class="sr-url">${res.url}</div>` : ''}
+      <button class="btn btn-sm" onclick="addFirmaFromSearch(
+        ${JSON.stringify(res.baslik||'')},
+        ${JSON.stringify(res.telefon||'')},
+        ${JSON.stringify(res.eposta||'')}
+      )">+ FİRMA OLARAK EKLE</button>
+    </div>`).join('');
 }
 
 function addFirmaFromSearch(ad, telefon, eposta) {
-    document.getElementById('firma-ad').value = ad?.replace(/'/g, "\\'") || '';
-    document.getElementById('firma-telefon').value = telefon || '';
-    document.getElementById('firma-eposta').value = eposta || '';
-    showTab('firmalar');
-    openModal('firma');
+  document.getElementById('firma-ad').value = ad || '';
+  document.getElementById('firma-telefon').value = telefon || '';
+  document.getElementById('firma-eposta').value = eposta || '';
+  showTab('firmalar');
+  openModal('firma');
+}
+
+// ═══════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════
+function openModal(type) {
+  document.getElementById(`modal-${type}`).classList.add('show');
+}
+
+function closeModal(type) {
+  document.getElementById(`modal-${type}`).classList.remove('show');
+}
+
+// Close on backdrop click
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function v(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function setEl(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function show(id, visible) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (visible) el.classList.remove('hidden');
+  else el.classList.add('hidden');
+}
+
+function showErr(tbodyId, cols, msg) {
+  const el = document.getElementById(tbodyId);
+  if (el) el.innerHTML = `<tr><td colspan="${cols}" class="text-red text-center" style="padding:16px;">HATA: ${msg}</td></tr>`;
+}
+
+function clearForm(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function today() {
+  return new Date().toLocaleDateString('tr-TR');
 }
 </script>
 </body>
