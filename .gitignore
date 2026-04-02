@@ -1,0 +1,6 @@
+-e credentials.json
+.env
+app.log
+__pycache__
+*.pyc
+.DS_Store

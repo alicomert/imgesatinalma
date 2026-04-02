@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SATINALMA SİSTEMİ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        't': {'bg': '#0a0a0a', 'green': '#33ff33', 'amber': '#ffb000', 'cyan': '#00ffff', 'red': '#ff3333', 'border': '#333333'}
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 600; }
+        body { background: #0a0a0a; }
+        input, select, textarea { background: #0a0a0a; border: 2px solid #333; color: #33ff33; padding: 8px 12px; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: #33ff33; }
+        .btn { background: transparent; border: 3px solid #33ff33; color: #33ff33; padding: 12px 24px; cursor: pointer; font-size: 18px; font-weight: 700; }
+        .btn:hover { background: #33ff33; color: #0a0a0a; }
+        .btn-red { border-color: #ff3333; color: #ff3333; }
+        .btn-red:hover { background: #ff3333; color: #0a0a0a; }
+        .btn-amber { border-color: #ffb000; color: #ffb000; }
+        .btn-amber:hover { background: #ffb000; color: #0a0a0a; }
+        .tab { padding: 16px 32px; font-size: 20px; font-weight: 700; border: 3px solid #333; cursor: pointer; transition: all 0.2s; }
+        .tab.active { background: #33ff33; color: #0a0a0a; border-color: #33ff33; }
+        .tab:not(.active):hover { border-color: #33ff33; }
+        .badge { padding: 6px 14px; font-size: 14px; font-weight: 700; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .user-btn { padding: 20px 40px; font-size: 24px; border: 4px solid #333; cursor: pointer; transition: all 0.2s; }
+        .user-btn:hover { border-color: #33ff33; }
+        .user-btn.selected { background: #33ff33; color: #0a0a0a; border-color: #33ff33; }
+    </style>
+</head>
+<body class="min-h-screen text-t-green">
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <div class="text-4xl font-bold mb-8 text-t-green">═══ SATINALMA SİSTEMİ ═══</div>
+        <div class="text-xl mb-8 text-t-amber">KULLANICI SEÇİNİZ</div>
+        <div class="flex gap-8 justify-center">
+            <button onclick="login('NVARNALI')" class="user-btn text-t-green">👤 NVARNALI</button>
+            <button onclick="login('ACOMERT')" class="user-btn text-t-green">👤 ACOMERT</button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" class="hidden">
+    <!-- Header -->
+    <header class="border-b-4 border-t-border bg-t-bg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <div class="text-3xl font-bold text-t-green">SATINALMA</div>
+            </div>
+            <div class="flex items-center gap-8 text-lg">
+                <div><span class="text-t-cyan">📅</span> <span id="current-date"></span></div>
+                <div><span class="text-t-cyan">⏰</span> <span id="current-time"></span></div>
+                <div><span class="text-t-cyan">👤</span> <span id="current-user" class="text-t-amber font-bold"></span></div>
+                <button onclick="logout()" class="btn btn-red text-sm py-2 px-4">ÇIKIŞ</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="max-w-7xl mx-auto px-6 py-4 flex gap-4 flex-wrap">
+        <button onclick="showTab('isler')" id="tab-isler" class="tab active">🔧 İŞLER</button>
+        <button onclick="showTab('firmalar')" id="tab-firmalar" class="tab">🏢 FİRMALAR</button>
+        <button onclick="showTab('arastirma')" id="tab-arastirma" class="tab">🔍 ARAŞTIRMA</button>
+        <button onclick="showTab('teklifler')" id="tab-teklifler" class="tab">💵 TEKLİFLER</button>
+        <button onclick="showTab('faturalar')" id="tab-faturalar" class="tab">📄 FATURALAR</button>
+    </nav>
+
+    <!-- Content -->
+    <main class="max-w-7xl mx-auto px-6 py-4">
+
+        <!-- İŞLER TAB -->
+        <div id="content-isler" class="tab-content">
+            <div class="border-4 border-t-border mb-6">
+                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
+                    ═══ İŞ TAKİBİ ═══
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-lg flex gap-6">
+                    <span class="text-t-amber">TOPLAM: <span id="is-total">0</span></span>
+                    <span>DEVAM: <span id="is-devam">0</span></span>
+                    <span class="text-t-green">TAMAM: <span id="is-tamam">0</span></span>
+                </div>
+                <button onclick="openModal('is')" class="btn">+ YENİ İŞ</button>
+            </div>
+
+            <div class="border-4 border-t-border overflow-x-auto">
+                <table class="w-full text-base">
+                    <thead>
+                        <tr class="bg-t-border text-t-bg">
+                            <th class="p-3 border-r border-t-bg text-left">HİZMET</th>
+                            <th class="p-3 border-r border-t-bg text-left">FİRMA</th>
+                            <th class="p-3 border-r border-t-bg text-center">BAŞLANGIÇ</th>
+                            <th class="p-3 border-r border-t-bg text-center">DURUM</th>
+                            <th class="p-3 border-r border-t-bg text-center">KANIT</th>
+                            <th class="p-3 text-center">İŞLEM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="isler-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FİRMALAR TAB -->
+        <div id="content-firmalar" class="tab-content hidden">
+            <div class="border-4 border-t-border mb-6">
+                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
+                    ═══ FİRMA VERİTABANI ═══
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-lg">
+                    <span class="text-t-amber">TOPLAM: <span id="firma-total">0</span></span>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="deleteSelectedFirmalar()" class="btn btn-red">🗑 TOPLU SİL</button>
+                    <button onclick="openModal('firma')" class="btn">+ YENİ FİRMA</button>
+                </div>
+            </div>
+
+            <div class="border-4 border-t-border overflow-x-auto">
+                <table class="w-full text-base">
+                    <thead>
+                        <tr class="bg-t-border text-t-bg">
+                            <th class="p-3 border-r border-t-bg text-center w-12">✓</th>
+                            <th class="p-3 border-r border-t-bg text-left">AD</th>
+                            <th class="p-3 border-r border-t-bg text-left">TELEFON</th>
+                            <th class="p-3 border-r border-t-bg text-left">EPOSTA</th>
+                            <th class="p-3 border-r border-t-bg text-left">KONUM</th>
+                            <th class="p-3 border-r border-t-bg text-left">HİZMET</th>
+                            <th class="p-3 text-center">İŞLEM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="firmalar-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ARAŞTIRMA TAB -->
+        <div id="content-arastirma" class="tab-content hidden">
+            <div class="border-4 border-t-border mb-6">
+                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
+                    ═══ FİRMA ARAŞTIRMA ═══
+                </div>
+            </div>
+
+            <!-- Search Form -->
+            <div class="border-4 border-t-border p-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="text-t-amber block mb-2 text-lg">ARAMA:</label>
+                        <input type="text" id="search-query" placeholder="Ankara klima servisi..." class="w-full text-lg p-4">
+                    </div>
+                    <div>
+                        <label class="text-t-amber block mb-2 text-lg">KONUM:</label>
+                        <input type="text" id="search-konum" placeholder="Ankara..." class="w-full text-lg p-4">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="startSearch()" class="btn w-full text-lg py-4">══ ARA ══</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div id="search-status" class="hidden border-4 border-t-amber p-4 mb-6 text-center text-t-amber text-xl">
+                ⏳ ARANIYOR...
+            </div>
+
+            <!-- Results -->
+            <div id="search-results" class="hidden border-4 border-t-border mb-6">
+                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
+                    ═══ SONUÇLAR (<span id="result-count">0</span>) ═══
+                </div>
+                <div class="p-4" id="search-results-list"></div>
+            </div>
+
+            <!-- History -->
+            <div class="border-4 border-t-border">
+                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
+                    ═══ ARAMA GEÇMİŞİ ═══
+                </div>
+                <div class="p-4" id="arastirma-history"></div>
+            </div>
+        </div>
+
+        <!-- TEKLİFLER TAB -->
+        <div id="content-teklifler" class="tab-content hidden">
+            <div class="border-4 border-t-border mb-6">
+                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
+                    ═══ TEKLİFLER ═══
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-lg"><span class="text-t-amber">TOPLAM: <span id="teklif-total">0</span></span></div>
+                <button onclick="openModal('teklif')" class="btn">+ YENİ TEKLİF</button>
+            </div>
+
+            <div class="border-4 border-t-border overflow-x-auto">
+                <table class="w-full text-base">
+                    <thead>
+                        <tr class="bg-t-border text-t-bg">
+                            <th class="p-3 border-r border-t-bg text-left">FİRMA</th>
+                            <th class="p-3 border-r border-t-bg text-left">HİZMET</th>
+                            <th class="p-3 border-r border-t-bg text-right">TUTAR</th>
+                            <th class="p-3 border-r border-t-bg text-center">KAYNAK</th>
+                            <th class="p-3 border-r border-t-bg text-center">DURUM</th>
+                            <th class="p-3 text-center">İŞLEM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teklifler-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FATURALAR TAB -->
+        <div id="content-faturalar" class="tab-content hidden">
+            <div class="border-4 border-t-border mb-6">
+                <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl tracking-widest">
+                    ═══ FATURALAR ═══
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-lg"><span class="text-t-amber">TOPLAM: <span id="fatura-total">0</span></span></div>
+                <button onclick="openModal('fatura')" class="btn">+ YENİ FATURA</button>
+            </div>
+
+            <div class="border-4 border-t-border overflow-x-auto">
+                <table class="w-full text-base">
+                    <thead>
+                        <tr class="bg-t-border text-t-bg">
+                            <th class="p-3 border-r border-t-bg text-left">FİRMA</th>
+                            <th class="p-3 border-r border-t-bg text-left">FATURA NO</th>
+                            <th class="p-3 border-r border-t-bg text-right">TUTAR</th>
+                            <th class="p-3 border-r border-t-bg text-center">VADE</th>
+                            <th class="p-3 border-r border-t-bg text-center">DURUM</th>
+                            <th class="p-3 text-center">İŞLEM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="faturalar-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- MODALS -->
+<div id="modal-is" class="modal">
+    <div class="border-4 border-t-border bg-t-bg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl flex justify-between">
+            <span>═══ YENİ İŞ ═══</span>
+            <button onclick="closeModal('is')" class="hover:text-t-red">✕</button>
+        </div>
+        <div class="p-6 space-y-6">
+            <div><label class="text-t-amber block mb-2">HİZMET:</label><input type="text" id="is-hizmet" placeholder="Klima bakımı..." class="w-full"></div>
+            <div><label class="text-t-amber block mb-2">FİRMA:</label><input type="text" id="is-firma" placeholder="Firma adı..." class="w-full"></div>
+            <div class="grid grid-cols-2 gap-6">
+                <div><label class="text-t-amber block mb-2">BAŞLANGIÇ:</label><input type="text" id="is-baslangic" class="w-full" readonly></div>
+                <div><label class="text-t-amber block mb-2">DURUM:</label>
+                    <select id="is-durum" class="w-full">
+                        <option value="DEVAM">DEVAM EDİYOR</option>
+                        <option value="TAMAM">TAMAMLANDI</option>
+                        <option value="IPTAL">İPTAL</option>
+                    </select>
+                </div>
+            </div>
+            <div><label class="text-t-amber block mb-2">NOTLAR:</label><textarea id="is-notlar" rows="3" class="w-full resize-none"></textarea></div>
+            <div class="flex justify-between">
+                <button onclick="closeModal('is')" class="btn btn-red">İPTAL</button>
+                <button onclick="saveIs()" class="btn">KAYDET</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-firma" class="modal">
+    <div class="border-4 border-t-border bg-t-bg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl flex justify-between">
+            <span>═══ YENİ FİRMA ═══</span>
+            <button onclick="closeModal('firma')" class="hover:text-t-red">✕</button>
+        </div>
+        <div class="p-6 space-y-6">
+            <div><label class="text-t-amber block mb-2">FİRMA ADI:</label><input type="text" id="firma-ad" placeholder="ABC Klima..." class="w-full"></div>
+            <div class="grid grid-cols-2 gap-6">
+                <div><label class="text-t-amber block mb-2">TELEFON:</label><input type="text" id="firma-telefon" placeholder="+90 312..." class="w-full"></div>
+                <div><label class="text-t-amber block mb-2">EPOSTA:</label><input type="email" id="firma-eposta" placeholder="info@..." class="w-full"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+                <div><label class="text-t-amber block mb-2">KONUM:</label><input type="text" id="firma-konum" placeholder="Ankara..." class="w-full"></div>
+                <div><label class="text-t-amber block mb-2">HİZMET:</label><input type="text" id="firma-hizmet" placeholder="Klima bakım..." class="w-full"></div>
+            </div>
+            <div><label class="text-t-amber block mb-2">NOTLAR:</label><textarea id="firma-notlar" rows="3" class="w-full resize-none"></textarea></div>
+            <div class="flex justify-between">
+                <button onclick="closeModal('firma')" class="btn btn-red">İPTAL</button>
+                <button onclick="saveFirma()" class="btn">KAYDET</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-teklif" class="modal">
+    <div class="border-4 border-t-border bg-t-bg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl flex justify-between">
+            <span>═══ YENİ TEKLİF ═══</span>
+            <button onclick="closeModal('teklif')" class="hover:text-t-red">✕</button>
+        </div>
+        <div class="p-6 space-y-6">
+            <div><label class="text-t-amber block mb-2">FİRMA:</label><input type="text" id="teklif-firma" placeholder="Firma..." class="w-full"></div>
+            <div><label class="text-t-amber block mb-2">HİZMET:</label><input type="text" id="teklif-hizmet" placeholder="Hizmet..." class="w-full"></div>
+            <div class="grid grid-cols-3 gap-6">
+                <div><label class="text-t-amber block mb-2">TUTAR:</label><input type="number" id="teklif-tutar" placeholder="0" class="w-full"></div>
+                <div><label class="text-t-amber block mb-2">PARA:</label><select id="teklif-para" class="w-full"><option value="TRY">₺ TRY</option><option value="USD">$ USD</option></select></div>
+                <div><label class="text-t-amber block mb-2">KAYNAK:</label><select id="teklif-kaynak" class="w-full"><option value="">SEÇ</option><option value="WhatsApp">WhatsApp</option><option value="Eposta">E-posta</option><option value="Telefon">Telefon</option></select></div>
+            </div>
+            <div><label class="text-t-amber block mb-2">NOTLAR:</label><textarea id="teklif-notlar" rows="3" class="w-full resize-none"></textarea></div>
+            <div class="flex justify-between">
+                <button onclick="closeModal('teklif')" class="btn btn-red">İPTAL</button>
+                <button onclick="saveTeklif()" class="btn">KAYDET</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-fatura" class="modal">
+    <div class="border-4 border-t-border bg-t-bg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-t-border px-6 py-3 text-t-bg font-bold text-xl flex justify-between">
+            <span>═══ YENİ FATURA ═══</span>
+            <button onclick="closeModal('fatura')" class="hover:text-t-red">✕</button>
+        </div>
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-2 gap-6">
+                <div><label class="text-t-amber block mb-2">FİRMA:</label><input type="text" id="fatura-firma" placeholder="Firma..." class="w-full"></div>
+                <div><label class="text-t-amber block mb-2">FATURA NO:</label><input type="text" id="fatura-no" placeholder="2024/001" class="w-full"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-6">
+                <div><label class="text-t-amber block mb-2">TUTAR:</label><input type="number" id="fatura-tutar" placeholder="0" class="w-full"></div>
+                <div><label class="text-t-amber block mb-2">VADE:</label><input type="number" id="fatura-vade" placeholder="30" class="w-full"></div>
+                <div><label class="text-t-amber block mb-2">DURUM:</label><select id="fatura-durum" class="w-full"><option value="BEKLIYOR">BEKLİYOR</option><option value="ODENDI">ÖDENDİ</option></select></div>
+            </div>
+            <div><label class="text-t-amber block mb-2">NOTLAR:</label><textarea id="fatura-notlar" rows="3" class="w-full resize-none"></textarea></div>
+            <div class="flex justify-between">
+                <button onclick="closeModal('fatura')" class="btn btn-red">İPTAL</button>
+                <button onclick="saveFatura()" class="btn">KAYDET</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========== GLOBALS ==========
+let currentUser = null;
+let selectedFirmalar = [];
+
+// ========== TIME ==========
+function updateTime() {
+    const now = new Date();
+    document.getElementById('current-time').textContent = now.toLocaleTimeString('tr-TR');
+    document.getElementById('current-date').textContent = now.toLocaleDateString('tr-TR');
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// ========== AUTH ==========
+function login(user) {
+    currentUser = user;
+    document.getElementById('current-user').textContent = user;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    loadData('isler');
+}
+
+function logout() {
+    currentUser = null;
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('main-app').classList.add('hidden');
+}
+
+// ========== TABS ==========
+function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(`content-${tab}`).classList.remove('hidden');
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    
+    loadData(tab);
+}
+
+// ========== MODALS ==========
+function openModal(type) {
+    document.getElementById(`modal-${type}`).classList.add('show');
+    if (type === 'is') document.getElementById('is-baslangic').value = new Date().toLocaleDateString('tr-TR');
+}
+function closeModal(type) {
+    document.getElementById(`modal-${type}`).classList.remove('show');
+}
+
+// ========== API ==========
+async function api(endpoint, method='GET', data=null) {
+    const opts = {method, headers: {'X-User': currentUser}};
+    if (data) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(data);
+    }
+    const res = await fetch(`/api/${endpoint}`, opts);
+    return res.json();
+}
+
+// ========== LOAD ==========
+async function loadData(tab) {
+    try {
+        const res = await api(tab);
+        if (!res.success) return;
+        
+        const data = res.data || [];
+        
+        switch(tab) {
+            case 'isler': renderIsler(data); break;
+            case 'firmalar': renderFirmalar(data); break;
+            case 'teklifler': renderTeklifler(data); break;
+            case 'faturalar': renderFaturalar(data); break;
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+// ========== RENDER ==========
+function renderIsler(data) {
+    document.getElementById('is-total').textContent = data.length;
+    document.getElementById('is-devam').textContent = data.filter(x => x.Durum === 'DEVAM').length;
+    document.getElementById('is-tamam').textContent = data.filter(x => x.Durum === 'TAMAM').length;
+    
+    const tbody = document.getElementById('isler-list');
+    tbody.innerHTML = data.length ? data.map(i => `
+        <tr class="border-b border-t-border hover:bg-gray-900">
+            <td class="p-3 border-r border-t-border">${i.Hizmet || ''}</td>
+            <td class="p-3 border-r border-t-border">${i.Firma || ''}</td>
+            <td class="p-3 border-r border-t-border text-center">${i.Baslangic || ''}</td>
+            <td class="p-3 border-r border-t-border text-center">${renderDurum(i.Durum)}</td>
+            <td class="p-3 border-r border-t-border text-center">${i.Kanitlar ? '<span class="text-t-cyan">VAR</span>' : '-'}</td>
+            <td class="p-3 text-center"><button onclick="deleteIs('${i.ID}')" class="text-t-red">[SİL]</button></td>
+        </tr>
+    `).join('') : '<tr><td colspan="6" class="p-6 text-center text-gray-600">══ HENÜZ İŞ YOK ══</td></tr>';
+}
+
+function renderFirmalar(data) {
+    document.getElementById('firma-total').textContent = data.length;
+    
+    const tbody = document.getElementById('firmalar-list');
+    tbody.innerHTML = data.length ? data.map(f => `
+        <tr class="border-b border-t-border hover:bg-gray-900">
+            <td class="p-3 border-r border-t-border text-center"><input type="checkbox" onchange="toggleFirma('${f.ID}')" class="w-5 h-5"></td>
+            <td class="p-3 border-r border-t-border">${f.Ad || ''}</td>
+            <td class="p-3 border-r border-t-border text-t-cyan">${f.Telefon || '-'}</td>
+            <td class="p-3 border-r border-t-border text-t-cyan">${f.Eposta || '-'}</td>
+            <td class="p-3 border-r border-t-border">${f.Konum || ''}</td>
+            <td class="p-3 border-r border-t-border">${f.Hizmet || ''}</td>
+            <td class="p-3 text-center"><button onclick="deleteFirma('${f.ID}')" class="text-t-red">[SİL]</button></td>
+        </tr>
+    `).join('') : '<tr><td colspan="7" class="p-6 text-center text-gray-600">══ HENÜZ FİRMA YOK ══</td></tr>';
+}
+
+function renderTeklifler(data) {
+    document.getElementById('teklif-total').textContent = data.length;
+    
+    const tbody = document.getElementById('teklifler-list');
+    tbody.innerHTML = data.length ? data.map(t => `
+        <tr class="border-b border-t-border hover:bg-gray-900">
+            <td class="p-3 border-r border-t-border">${t.FirmaAd || ''}</td>
+            <td class="p-3 border-r border-t-border">${t.Hizmet || ''}</td>
+            <td class="p-3 border-r border-t-border text-right text-t-amber">₺${t.Tutar || '0'}</td>
+            <td class="p-3 border-r border-t-border text-center">${t.Kaynak || '-'}</td>
+            <td class="p-3 border-r border-t-border text-center">${renderDurum(t.Durum)}</td>
+            <td class="p-3 text-center"><button onclick="deleteTeklif('${t.ID}')" class="text-t-red">[SİL]</button></td>
+        </tr>
+    `).join('') : '<tr><td colspan="6" class="p-6 text-center text-gray-600">══ HENÜZ TEKLİF YOK ══</td></tr>';
+}
+
+function renderFaturalar(data) {
+    document.getElementById('fatura-total').textContent = data.length;
+    
+    const tbody = document.getElementById('faturalar-list');
+    tbody.innerHTML = data.length ? data.map(f => `
+        <tr class="border-b border-t-border hover:bg-gray-900">
+            <td class="p-3 border-r border-t-border">${f.FirmaId || ''}</td>
+            <td class="p-3 border-r border-t-border">${f.FaturaNo || ''}</td>
+            <td class="p-3 border-r border-t-border text-right text-t-amber">₺${f.Tutar || '0'}</td>
+            <td class="p-3 border-r border-t-border text-center">${f.Vade || 0} gün</td>
+            <td class="p-3 border-r border-t-border text-center">${renderDurum(f.Durum)}</td>
+            <td class="p-3 text-center"><button onclick="deleteFatura('${f.ID}')" class="text-t-red">[SİL]</button></td>
+        </tr>
+    `).join('') : '<tr><td colspan="6" class="p-6 text-center text-gray-600">══ HENÜZ FATURA YOK ══</td></tr>';
+}
+
+function renderDurum(d) {
+    const cls = {'DEVAM':'bg-t-amber','TAMAM':'bg-t-green','BEKLEMEDE':'bg-t-amber','KABUL':'bg-t-green','RED':'bg-t-red','BEKLIYOR':'bg-t-amber','ODENDI':'bg-t-green'};
+    return `<span class="badge ${cls[d]||'bg-gray-600'} text-black">${d||'BEKLEMEDE'}</span>`;
+}
+
+// ========== CRUD ==========
+async function saveIs() {
+    const data = {
+        hizmet: document.getElementById('is-hizmet').value,
+        firma: document.getElementById('is-firma').value,
+        baslangic: document.getElementById('is-baslangic').value,
+        durum: document.getElementById('is-durum').value,
+        notlar: document.getElementById('is-notlar').value
+    };
+    if (!data.hizmet) { alert('Hizmet gerekli!'); return; }
+    
+    const res = await api('is', 'POST', data);
+    if (res.success) { closeModal('is'); loadData('isler'); alert('✓ İş eklendi'); }
+}
+
+async function deleteIs(id) {
+    if (!confirm('Silmek istediğinize emin misiniz?')) return;
+    await api(`is/${id}`, 'DELETE');
+    loadData('isler');
+}
+
+async function saveFirma() {
+    const data = {
+        ad: document.getElementById('firma-ad').value,
+        telefon: document.getElementById('firma-telefon').value,
+        eposta: document.getElementById('firma-eposta').value,
+        konum: document.getElementById('firma-konum').value,
+        hizmet: document.getElementById('firma-hizmet').value,
+        notlar: document.getElementById('firma-notlar').value
+    };
+    if (!data.ad) { alert('Firma adı gerekli!'); return; }
+    
+    const res = await api('firma', 'POST', data);
+    if (res.success) { closeModal('firma'); loadData('firmalar'); alert('✓ Firma eklendi'); }
+}
+
+async function deleteFirma(id) {
+    if (!confirm('Silmek istediğinize emin misiniz?')) return;
+    await api(`firma/${id}`, 'DELETE');
+    loadData('firmalar');
+}
+
+function toggleFirma(id) {
+    if (selectedFirmalar.includes(id)) selectedFirmalar = selectedFirmalar.filter(x => x !== id);
+    else selectedFirmalar.push(id);
+}
+
+async function deleteSelectedFirmalar() {
+    if (!selectedFirmalar.length) { alert('Seçim yok!'); return; }
+    if (!confirm(`${selectedFirmalar.length} firma silinecek. Emin mi?`)) return;
+    await api('firmalar/delete-many', 'POST', {ids: selectedFirmalar});
+    selectedFirmalar = [];
+    loadData('firmalar');
+}
+
+async function saveTeklif() {
+    const data = {
+        firmaAd: document.getElementById('teklif-firma').value,
+        hizmet: document.getElementById('teklif-hizmet').value,
+        tutar: document.getElementById('teklif-tutar').value,
+        paraBirimi: document.getElementById('teklif-para').value,
+        kaynak: document.getElementById('teklif-kaynak').value,
+        notlar: document.getElementById('teklif-notlar').value
+    };
+    if (!data.firmaAd) { alert('Firma gerekli!'); return; }
+    
+    const res = await api('teklif', 'POST', data);
+    if (res.success) { closeModal('teklif'); loadData('teklifler'); alert('✓ Teklif eklendi'); }
+}
+
+async function deleteTeklif(id) {
+    if (!confirm('Silmek istediğinize emin misiniz?')) return;
+    await api(`teklif/${id}`, 'DELETE');
+    loadData('teklifler');
+}
+
+async function saveFatura() {
+    const data = {
+        firmaId: document.getElementById('fatura-firma').value,
+        faturaNo: document.getElementById('fatura-no').value,
+        tutar: document.getElementById('fatura-tutar').value,
+        vade: document.getElementById('fatura-vade').value,
+        durum: document.getElementById('fatura-durum').value,
+        notlar: document.getElementById('fatura-notlar').value
+    };
+    if (!data.faturaNo) { alert('Fatura no gerekli!'); return; }
+    
+    const res = await api('fatura', 'POST', data);
+    if (res.success) { closeModal('fatura'); loadData('faturalar'); alert('✓ Fatura eklendi'); }
+}
+
+async function deleteFatura(id) {
+    if (!confirm('Silmek istediğinize emin misiniz?')) return;
+    await api(`fatura/${id}`, 'DELETE');
+    loadData('faturalar');
+}
+
+// ========== ARAŞTIRMA ==========
+async function startSearch() {
+    const query = document.getElementById('search-query').value;
+    const konum = document.getElementById('search-konum').value;
+    
+    if (!query) { alert('Arama terimi gerekli!'); return; }
+    
+    document.getElementById('search-status').classList.remove('hidden');
+    document.getElementById('search-results').classList.add('hidden');
+    
+    const res = await api('arastirma', 'POST', {query, konum});
+    
+    document.getElementById('search-status').classList.add('hidden');
+    
+    if (res.success && res.results?.length) {
+        document.getElementById('result-count').textContent = res.results.length;
+        document.getElementById('search-results').classList.remove('hidden');
+        document.getElementById('search-results-list').innerHTML = res.results.map(r => `
+            <div class="border-2 border-t-border p-4 mb-3">
+                <div class="text-lg font-bold text-t-cyan mb-2">${r.baslik}</div>
+                <div class="mb-2">
+                    ${r.telefon ? `<span class="text-t-green mr-4">📞 ${r.telefon}</span>` : ''}
+                    ${r.eposta ? `<span class="text-t-green">📧 ${r.eposta}</span>` : ''}
+                </div>
+                <div class="text-sm text-gray-500 mb-3">${r.aciklama || ''}</div>
+                <button onclick="addFirmaFromSearch('${r.baslik}', '${r.telefon}', '${r.eposta}')" class="btn text-sm py-2">+ FİRMA EKLE</button>
+            </div>
+        `).join('');
+    } else {
+        alert('Sonuç bulunamadı');
+    }
+}
+
+function addFirmaFromSearch(ad, telefon, eposta) {
+    document.getElementById('firma-ad').value = ad?.replace(/'/g, "\\'") || '';
+    document.getElementById('firma-telefon').value = telefon || '';
+    document.getElementById('firma-eposta').value = eposta || '';
+    showTab('firmalar');
+    openModal('firma');
+}
+</script>
+</body>
+</html>

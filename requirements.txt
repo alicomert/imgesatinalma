@@ -1,0 +1,7 @@
+flask
+flask-cors
+gspread
+google-auth
+google-api-python-client
+requests
+duckduckgo-search
